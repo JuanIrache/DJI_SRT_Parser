@@ -6,6 +6,7 @@ function DJI_SRT_Parser() {
   let rawMetadata;
   let smoothened;
   let callbackF;
+  let loaded;
 
   let srtToObject = function(srt) {//convert SRT strings file into array of objects
   	let converted = [];
@@ -250,56 +251,57 @@ function DJI_SRT_Parser() {
   }
 
   let loadFile = function(file,cb) {
+    loaded = false;
     callbackF = cb;
+    let loadFileBrowser = function(file) {
+      let readTextFile = function(file,f) {
+          let rawFile = new XMLHttpRequest();
+          let allText;
+          rawFile.open("GET", file, true);
+          rawFile.onreadystatechange = function() {
+              if(rawFile.readyState === 4) {
+                  if(rawFile.status === 200 || rawFile.status == 0) {
+                      let allText = rawFile.responseText;
+                      f(allText);
+                  }
+              }
+          }
+          rawFile.send(null);
+      }
+      readTextFile(file,flow);
+    }
+    let loadFileNode = function(file) {
+      http = require('http');
+      var fs = require('fs');
+      fs.readFile(file, function (err, data) {
+        if (err) {
+          throw err;
+        }
+        flow(data.toString());
+      });
+    }
     if (typeof window === 'undefined') {
       loadFileNode(file);
     } else {
       loadFileBrowser(file);
     }
   }
-  let loadFileNode = function(file) {
-    http = require('http');
-    var fs = require('fs');
-    fs.readFile(file, function (err, data) {
-      if (err) {
-        throw err;
-      }
-      flow(data.toString());
-    });
-  }
-
-  let loadFileBrowser = function(file) {
-    let readTextFile = function(file,f) {
-        let rawFile = new XMLHttpRequest();
-        let allText;
-        rawFile.open("GET", file, true);
-        rawFile.onreadystatechange = function() {
-            if(rawFile.readyState === 4) {
-                if(rawFile.status === 200 || rawFile.status == 0) {
-                    let allText = rawFile.responseText;
-                    f(allText);
-                }
-            }
-        }
-        rawFile.send(null);
-    }
-    readTextFile(file,flow);
-  }
 
   let flow = function(data) {
     rawMetadata = srtToObject(data);
     metadata = interpretMetadata(rawMetadata);
+    loaded = true;
     callbackF();
   }
 
   exports = function(file) {
     return {
       load:function(file,cb) {loadFile(file,cb)},
-      getSmoothing:function() {return smoothened},
-      setSmoothing:function(smooth) {metadata = interpretMetadata(rawMetadata,smooth)},
-      rawMetadata:function() {return rawMetadata},
-      metadata:function() {return metadata},
-      toCSV:function(raw) {return createCSV(raw)}
+      getSmoothing:function() {return loaded ? smoothened : notReady()},
+      setSmoothing:function(smooth) {if (loaded) {metadata = interpretMetadata(rawMetadata,smooth)} else {notReady()}},
+      rawMetadata:function() {return loaded ? rawMetadata : notReady()},
+      metadata:function() {return loaded ? metadata : notReady()},
+      toCSV:function(raw) {return loaded ? createCSV(raw) : notReady()}
     }
   }();
 

@@ -48,5 +48,4 @@ Units in interpreted data
 - ISO, shutter and EV (not always present)
 
 TODO
-- Warn when data is not ready
 - Export data for After Effects

@@ -24,7 +24,7 @@ DJISRTParser.load(file+".SRT",confirm);
 //Once loaded...
 function confirm() {
   //rawMetadata() returns an array of objects with labels and the unmodified SRT data in the form of strings
-	console.log(DJISRTParser.rawMetadata());
+  console.log(DJISRTParser.rawMetadata());
   //metadata() returns an object with 2 elements
   //(1) a packets array similar to rawMetadata() but with smoothing applied to GPS locations (see below why smoothing is used) and with computed speeds in 2d, 3d and vertical
   //(2) a stats object containing stats like minimum, average and maximum speeds based on the interpreted data
@@ -40,7 +40,7 @@ function confirm() {
 Smoothing is applied when interpreting the data because the GPS values provided by DJI are not accurate enough. They don't have enough digits. We average them with the surrounding values to create more pleasant paths and to be able to compute somewhat meaningful speeds. The interpreted values are not necessarily more accurate.
 
 Units in interpreted data
-- Timecode: hh:mm:ss.fff
+- Timecode: hh:mm:ss,fff
 - GPS: degrees
 - Date: yyyy-MM-dd HH:mm:ss (note that the timezone is not specified, could be local where the drone was registered, or flown...)
 - Barometer: meters (more accurate than GPS altitude)

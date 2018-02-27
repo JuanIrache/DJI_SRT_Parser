@@ -42,7 +42,7 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 Units in interpreted data
 - Timecode: hh:mm:ss,fff
 - GPS: degrees
-- Date: yyyy-MM-dd HH:mm:ss (note that the timezone is not specified, could be local where the drone was registered, or flown...)
+- Date: YYYY.MM.DD HH:MM:SS (note that the timezone is not specified, could be local where the drone was registered, or flown...)
 - Barometer: meters (more accurate than GPS altitude)
 - Speed: km/h
 - ISO, shutter and EV (not always present)

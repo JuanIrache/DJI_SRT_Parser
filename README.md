@@ -48,4 +48,5 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 - ISO, shutter and EV (not always present)
 
 ## TODO
+- Add distance stats
 - Export data for After Effects

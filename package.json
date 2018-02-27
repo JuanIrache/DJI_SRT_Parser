@@ -1,0 +1,34 @@
+{
+  "name": "dji_srt_parser",
+  "version": "1.0.0",
+  "description": "Parses and interprets DJI's drones SRT metadata",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JuanIrache/DJI_SRT_Parser.git"
+  },
+  "keywords": [
+    "DJI",
+    "SRT",
+    "Metadata",
+    "GPS",
+    "Speed",
+    "Location",
+    "Aperture",
+    "EV",
+    "ISO",
+    "Shutter",
+    "Barometer",
+    "Date"
+  ],
+  "author": "Juan Irache Duesca",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JuanIrache/DJI_SRT_Parser/issues"
+  },
+  "homepage": "https://github.com/JuanIrache/DJI_SRT_Parser#readme",
+  "dependencies": {}
+}

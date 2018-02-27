@@ -22,7 +22,12 @@
     "ISO",
     "Shutter",
     "Barometer",
-    "Date"
+    "Date",
+    "Drone",
+    "Mavic Pro",
+    "Mavic Air",
+    "Phantom",
+    "Spark"
   ],
   "author": "Juan Irache Duesca",
   "license": "ISC",

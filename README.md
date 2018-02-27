@@ -10,7 +10,7 @@ Using npm:
 $ npm install --save dji_srt_parser
 ```
 
-Usage:
+## Usage
 ```js
 //Load module
 let DJISRTParser = require('dji_srt_parser');
@@ -39,7 +39,7 @@ function confirm() {
 ```
 Smoothing is applied when interpreting the data because the GPS values provided by DJI are not accurate enough. They don't have enough digits. We average them with the surrounding values to create more pleasant paths and to be able to compute somewhat meaningful speeds. The interpreted values are not necessarily more accurate.
 
-Units in interpreted data
+## Units in interpreted data
 - Timecode: hh:mm:ss,fff
 - GPS: degrees
 - Date: YYYY.MM.DD HH:MM:SS (note that the timezone is not specified, could be local where the drone was registered, or flown...)
@@ -47,5 +47,5 @@ Units in interpreted data
 - Speed: km/h
 - ISO, shutter and EV (not always present)
 
-TODO
+## TODO
 - Export data for After Effects

@@ -47,7 +47,7 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 - Date: timestamp in milliseconds (note that the time zone is not specified, could be local where the drone was registered, or flown...)
 - Barometer: meters (more accurate than GPS altitude)
 - Speed: km/h
-- Duration: seconds
+- Duration: milliseconds
 - Distance: meters
 - ISO, shutter and EV (not always present)
 

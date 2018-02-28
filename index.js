@@ -13,8 +13,8 @@ function DJI_SRT_Parser() {
   	const timecodeRegEx = /(\d{2}:\d{2}:\d{2},\d{3})\s-->\s/;
   	const packetRegEx = /^\d+$/;
   	const arrayRegEx = /\b([A-Za-z]+)\(([-\+\d.,]+)\)/g;
-  	const valueRegEx = /\b([A-Za-z]+):[\s\w]?([-\+\d./]+)\b/g;
-  	const dateRegEx = /\d{4}\.\d{1,2}\.\d{1,2} \d{1,2}:\d{2}:\d{2}/;
+  	const valueRegEx = /\b([A-Za-z]+)\s?:[\s\[a-zA-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
+  	const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}/;
   	srt = srt.split(/[\n\r]/);
   	srt.forEach(line => {
       let match;
@@ -175,6 +175,8 @@ function DJI_SRT_Parser() {
       		interpreted = datum;
       	} else if (key === "EV") {
       		interpreted = eval(datum);
+      	} else if (key === "Shutter") {
+      		interpreted = Number(datum.replace("1/", ""));
       	} else {
       		interpreted = Number(datum.replace(/[a-zA-Z]/g, ""));
       	}

@@ -41,11 +41,14 @@ function confirm() {
 Smoothing is applied when interpreting the data because the GPS values provided by DJI are not accurate enough. They don't have enough digits. We average them with the surrounding values to create more pleasant paths and to be able to compute somewhat meaningful speeds. The interpreted values are not necessarily more accurate.
 
 ## Units of interpreted data
+(As far as we know)
 - Timecode: HH:MM:SS,FFF
 - GPS: degrees (and meters for third value, altitude)
 - Date: YYYY.MM.DD HH:MM:SS (note that the time zone is not specified, could be local where the drone was registered, or flown...)
 - Barometer: meters (more accurate than GPS altitude)
 - Speed: km/h
+- Duration: seconds
+- Distance: meters
 - ISO, shutter and EV (not always present)
 
 ## TODO

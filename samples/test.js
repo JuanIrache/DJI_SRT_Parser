@@ -16,7 +16,7 @@ function confirm() {
 	}
 	console.log("Highest registered elevation was "+elevation+" meters");
 	console.log("The video recorded for "+DJISRTParser.metadata().stats.DURATION+" seconds while flying for "+Math.round(DJISRTParser.metadata().stats.DISTANCE)+" meters");
-	console.log("Initial aperture was F"+DJISRTParser.metadata().stats.Fnum.min);
+	console.log("Initial aperture was F"+DJISRTParser.metadata().packets[0].Fnum+", shutter speed was 1/"+DJISRTParser.metadata().packets[0].Shutter+" and ISO was "+DJISRTParser.metadata().packets[0].ISO);
 	if (DJISRTParser.metadata().stats.EV == undefined) {
 		console.log("The camera was probably using auto-exposure");
 	} else if (DJISRTParser.metadata().stats.EV.avg === 0) {

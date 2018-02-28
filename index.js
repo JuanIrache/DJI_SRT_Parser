@@ -1,5 +1,4 @@
 "use_strict";
-var exports;
 var http;
 let metadata;
 let rawMetadata;
@@ -223,7 +222,6 @@ let interpretMetadata = function(arr,smooth) {
   	return interpreted;
   }
   let smoothenGPS = function(arr,amount) {	//averages positions with the specified surrounding seconds. Necessary due to DJI's SRT logs low precision
-    smoothened = amount;
   	let smoothArr = JSON.parse(JSON.stringify(arr));
   	for (let i=0; i<arr.length; i++) {
   		let start = parseInt(i-amount);
@@ -252,6 +250,7 @@ let interpretMetadata = function(arr,smooth) {
     if (smoothing !== 0)  {
       newArr = smoothenGPS(newArr,smoothing);
     }
+		smoothened = smoothing;
     newArr = computeSpeed(newArr);
   }
   let stats = computeStats(newArr);

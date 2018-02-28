@@ -92,7 +92,7 @@ let interpretMetadata = function(arr,smooth) {
 
   let computeStats = function (arr) {
     let statsObject = function(obj) {
-      if (Object.keys(obj).length === 0 && obj.constructor === Object) return null;
+      if (obj.constructor === Object && Object.keys(obj).length === 0) return null;
     	let result = {};
     	for (let elt in obj) {
         if (elt !== "TIMECODE") {//IGNORE TIMECODES FOR STATS
@@ -150,7 +150,7 @@ let interpretMetadata = function(arr,smooth) {
     	return result;
     }
   	let result = statsObject(arr[0]);
-    if (Object.keys(result).length === 0 && result.constructor === Object) return null;
+    if (result.constructor === Object && Object.keys(result).length === 0) return null;
   	result = recursiveStatsExtraction(result,arr);
     if (arr[arr.length-1].DIFFTIME != undefined) {
       result.DURATION = arr[arr.length-1].DIFFTIME; //duration of video in milliseconds
@@ -187,7 +187,7 @@ let interpretMetadata = function(arr,smooth) {
     	} else {
     		interpreted = Number(datum.replace(/[a-zA-Z]/g, ""));
     	}
-      if (Object.keys(interpreted).length === 0 && interpreted.constructor === Object) return null;
+      if (interpreted.constructor === Object && Object.keys(interpreted).length === 0) return null;
     	return interpreted;
     }
     let fillMissingFields = function(pckt) {
@@ -219,7 +219,7 @@ let interpretMetadata = function(arr,smooth) {
   		interpreted[item.toUpperCase()] = interpretItem(item,pck[item]);
   	}
     interpreted = fillMissingFields(interpreted);
-    if (Object.keys(interpreted).length === 0 && interpreted.constructor === Object) return null;
+    if (interpreted.constructor === Object && Object.keys(interpreted).length === 0) return null;
   	return interpreted;
   }
   let smoothenGPS = function(arr,amount) {	//averages positions with the specified surrounding seconds. Necessary due to DJI's SRT logs low precision

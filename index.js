@@ -171,8 +171,10 @@ function DJI_SRT_Parser() {
       			LATITUDE:Number(datum[1]),
       			LONGITUDE:Number(datum[0])
       		};
-      	} else if (key === "DATE" || key === "TIMECODE") {
+      	} else if (key === "TIMECODE"){
       		interpreted = datum;
+        } else if (key === "DATE") {
+          interpreted = new Date(datum).getTime();
       	} else if (key === "EV") {
       		interpreted = eval(datum);
       	} else if (key === "Shutter") {

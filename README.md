@@ -1,6 +1,7 @@
 # DJI_SRT_Parser
 
 Parses and interprets some data from DJI's Drones SRT metadata files.
+Currently only tested with Mavic Pro SRT files. You can send me yours if you want it implemented.
 Please let me know if you create something with this :).
 
 ## Installation
@@ -41,14 +42,14 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 
 ## Units of interpreted data
 - Timecode: HH:MM:SS,FFF
-- GPS: degrees
+- GPS: degrees (and meters for third value, altitude)
 - Date: YYYY.MM.DD HH:MM:SS (note that the time zone is not specified, could be local where the drone was registered, or flown...)
 - Barometer: meters (more accurate than GPS altitude)
 - Speed: km/h
 - ISO, shutter and EV (not always present)
 
 ## TODO
-- Test with different logs. Other drones have values like Hb:0.0 Hs:0.0 IR:F2.8?
+- Double check what happens with missing data
 - Provide arrays of only one field?
 - Add distance stats
 - Export data for After Effects

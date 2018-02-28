@@ -13,7 +13,7 @@ function DJI_SRT_Parser() {
   	const timecodeRegEx = /(\d{2}:\d{2}:\d{2},\d{3})\s-->\s/;
   	const packetRegEx = /^\d+$/;
   	const arrayRegEx = /\b([A-Za-z]+)\(([-\+\d.,]+)\)/g;
-  	const valueRegEx = /\b([A-Za-z]+):\s?([-\+\d.]+)\b/g;
+  	const valueRegEx = /\b([A-Za-z]+):[\s\w]?([-\+\d./]+)\b/g;
   	const dateRegEx = /\d{4}\.\d{1,2}\.\d{1,2} \d{1,2}:\d{2}:\d{2}/;
   	srt = srt.split(/[\n\r]/);
   	srt.forEach(line => {
@@ -66,8 +66,15 @@ function DJI_SRT_Parser() {
     			let origin2d = [cmp[i-1].GPS.LATITUDE,cmp[i-1].GPS.LATITUDE];
     			let destin2d = [pck.GPS.LATITUDE,pck.GPS.LATITUDE];
     			let distance2D = measure(origin2d[0],origin2d[1],destin2d[0],destin2d[1]);
-    			distance2D /= 1000;
-    			let distanceVert = Math.abs(pck.BAROMETER-cmp[i-1].BAROMETER);
+    			distance2D /= 1000;;
+          let distanceVert = 0;
+          if (pck.BAROMETER != undefined) {
+            distanceVert = pck.BAROMETER-cmp[i-1].BAROMETER;
+          } else if (pck.Hb != undefined) {
+            distanceVert = pck.Hb-cmp[i-1].Hb;
+          } else if (pck.Hs != undefined) {
+            distanceVert = pck.Hs-cmp[i-1].Hs;
+          }
     			distanceVert /= 1000;
     			let distance3D = Math.hypot(distance2D,distanceVert);
     			let time = (new Date(pck.DATE)-new Date(cmp[i-1].DATE))/1000.0;//seconds
@@ -162,9 +169,12 @@ function DJI_SRT_Parser() {
       			LONGITUDE:Number(datum[0])
       		};
       	} else if (key === "DATE" || key === "TIMECODE") {
-      		interpreted = (datum);
+      		interpreted = datum;
+      	} else if (key === "EV") {
+          console.log(datum);
+      		interpreted = eval(datum);
       	} else {
-      		interpreted = Number(datum);
+      		interpreted = Number(datum.replace(/[a-zA-Z]/g, ""));
       	}
         if (Object.keys(interpreted).length === 0 && interpreted.constructor === Object) return null;
       	return interpreted;

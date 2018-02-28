@@ -137,7 +137,6 @@ let interpretMetadata = function(arr,smooth) {
     			result[elt] = allHomes;
     		} else if (elt === "DATE") {
     			result[elt] = select[0];
-          result.DURATION = (new Date(select[select.length-1]) - new Date(select[0]))/1000; //duration of video in seconds
     		} else if (elt === "TIMECODE") {
     			//DO NOTHING
     		} else if (typeof select[0] === "object" && select[0] != null) {
@@ -153,6 +152,11 @@ let interpretMetadata = function(arr,smooth) {
   	let result = statsObject(arr[0]);
     if (Object.keys(result).length === 0 && result.constructor === Object) return null;
   	result = recursiveStatsExtraction(result,arr);
+    if (arr[arr.length-1].DIFFTIME != undefined) {
+      result.DURATION = arr[arr.length-1].DIFFTIME; //duration of video in milliseconds
+    } else if (arr[arr.length-1].DATE != undefined) {
+      result.DURATION = (new Date(arr[arr.length-1].DATE) - new Date(arr[0].DATE)); //duration of video in milliseconds
+    }
     if (result.SPEED != undefined && result.DURATION != undefined && result.SPEED.THREED.avg != undefined) {
       result.DISTANCE = (result.DURATION * (result.SPEED.THREED.avg * 1000 / (60*60))) ; //dsitance of flight in meters
     }

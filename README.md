@@ -52,7 +52,5 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 - ISO, shutter and EV (not always present)
 
 ## TODO
-- Double check what happens with missing data
-- use difftime for duration if available
 - Provide arrays of only one field?
 - Export data for After Effects

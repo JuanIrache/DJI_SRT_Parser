@@ -31,7 +31,7 @@ function confirm() {
 	} else {
 		console.log("\x1b[31m%s\x1b[0m", "No elevation data");
 	}
-	console.log("The video recorded for "+DJISRTParser.metadata().stats.DURATION+" seconds");
+	console.log("The video recorded for "+DJISRTParser.metadata().stats.DURATION/1000+" seconds");
 	if (DJISRTParser.metadata().stats.GPS) {
 		console.log("While flying for "+Math.round(DJISRTParser.metadata().stats.DISTANCE)+" meters");
 	} else {

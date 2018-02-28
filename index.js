@@ -152,6 +152,9 @@ function DJI_SRT_Parser() {
     	let result = statsObject(arr[0]);
       if (Object.keys(result).length === 0 && result.constructor === Object) return null;
     	result = recursiveStatsExtraction(result,arr);
+      if (result.DURATION != undefined && result.SPEED.THREED.avg != undefined) {
+        result.DISTANCE = (result.DURATION * (result.SPEED.THREED.avg * 1000 / (60*60))) ; //dsitance of flight in meters
+      }
     	return result;
     }
     let interpretPacket = function (pck) {
@@ -171,7 +174,6 @@ function DJI_SRT_Parser() {
       	} else if (key === "DATE" || key === "TIMECODE") {
       		interpreted = datum;
       	} else if (key === "EV") {
-          console.log(datum);
       		interpreted = eval(datum);
       	} else {
       		interpreted = Number(datum.replace(/[a-zA-Z]/g, ""));

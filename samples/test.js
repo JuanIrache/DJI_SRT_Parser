@@ -4,7 +4,7 @@ let DJISRTParser = require("../index");
 let i = 0;
 let DJIfile = DJISRTParser(files[i]+".SRT",confirm);
 function confirm() {
-	console.log("\nLoaded file "+files[i]);
+	console.log("\nLoaded file "+DJIfile.getFileName());
 	console.log("The video was recorded on "+new Date(DJIfile.metadata().stats.DATE));
 	if (DJIfile.metadata().stats.HOME) {
 		console.log("The drone's home was set to "+DJIfile.metadata().stats.HOME[0].LATITUDE+"º,"+DJIfile.metadata().stats.HOME[0].LONGITUDE+"º");
@@ -23,8 +23,6 @@ function confirm() {
 		elevation = DJIfile.metadata().stats.HB.max;
 	} else if (DJIfile.metadata().stats.HS) {
 		elevation = DJIfile.metadata().stats.HS.max;
-	} else if (DJIfile.metadata().stats.GPS) {
-		elevation = DJIfile.metadata().stats.GPS.ALTITUDE.max;
 	}
 	if (elevation) {
 		console.log("Highest registered elevation was "+elevation+" meters");

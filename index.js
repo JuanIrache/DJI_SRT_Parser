@@ -1,8 +1,7 @@
 "use_strict";
 
 function DJI_SRT_Parser() {
-	this.any = Math.random();
-	this.http = null;
+	this.fileName = "";
 	this.metadata = {};
 	this.rawMetadata = [];
 	this.smoothened = 0;
@@ -76,8 +75,6 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
           distanceVert = pck.HB-cmp[i-1].HB;
         } else if (pck.HS != undefined) {
           distanceVert = pck.HS-cmp[i-1].HS;
-        } else if (pck.GPS && pck.GPS.ALTITUDE != undefined) {
-          distanceVert = pck.GPS.ALTITUDE-cmp[i-1].GPS.ALTITUDE;
         }
   			distanceVert /= 1000;
   			let distance3D = Math.hypot(distance2D,distanceVert);
@@ -204,7 +201,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       let references = {//translate keys form various formats
         SHUTTER:["TV"],
         FNUM:["IR"]
-        //BAROMETER:["HB","HS",["GPS","ALTITUDE"]]
+        //BAROMETER:["HB","HS",["GPS"]]
       };
       for (let key in references) {
         if (pckt[key] == undefined) {
@@ -303,6 +300,7 @@ DJI_SRT_Parser.prototype.createCSV = function(raw) {
 
 DJI_SRT_Parser.prototype.loadFile = function(file,cb) {
 	let context = this;
+	this.fileName = file;
   this.loaded = false;
   this.callbackF = cb;
   let loadFileBrowser = function(file) {
@@ -314,16 +312,16 @@ DJI_SRT_Parser.prototype.loadFile = function(file,cb) {
             if(rawFile.readyState === 4) {
                 if(rawFile.status === 200 || rawFile.status == 0) {
                     let allText = rawFile.responseText;
-                    f(allText);
+                    f(allText,context);
                 }
             }
         }
         rawFile.send(null);
     }
-    readTextFile(file,flow);
+    readTextFile(file,context.flow);
   }
   let loadFileNode = function(file) {
-    this.http = require('http');
+    let http = require('http');
     var fs = require('fs');
     fs.readFile(file, function (err, data) {
       if (err) {
@@ -339,11 +337,12 @@ DJI_SRT_Parser.prototype.loadFile = function(file,cb) {
   }
 }
 
-DJI_SRT_Parser.prototype.flow = function(data) {
-  this.rawMetadata = this.srtToObject(data);
-  this.metadata = this.interpretMetadata(this.rawMetadata);
-  this.loaded = true;
-  this.callbackF();
+DJI_SRT_Parser.prototype.flow = function(data,context) {
+	let cntx = context || this;
+  cntx.rawMetadata = cntx.srtToObject(data);
+  cntx.metadata = cntx.interpretMetadata(cntx.rawMetadata);
+  cntx.loaded = true;
+  cntx.callbackF();
 }
 
 function notReady() {
@@ -358,7 +357,8 @@ function toExport(context,file,cb) {
     setSmoothing:function(smooth) {if (context.loaded) {context.metadata = context.interpretMetadata(context.rawMetadata,smooth)} else {notReady()}},
     rawMetadata:function() {return context.loaded ? context.rawMetadata : notReady()},
     metadata:function() {return context.loaded ? context.metadata : notReady()},
-    toCSV:function(raw) {return context.loaded ? context.createCSV(raw) : notReady()}
+    toCSV:function(raw) {return context.loaded ? context.createCSV(raw) : notReady()},
+		getFileName:function() {return context.loaded ? context.fileName : notReady()}
 	}
 }
 

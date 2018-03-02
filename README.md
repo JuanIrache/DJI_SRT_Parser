@@ -52,7 +52,6 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 - ISO, shutter and EV (not always present)
 
 ## TODO
-- move http to its function
 - Provide arrays of only one field?
 - Split some functions into other modules? (load files, createcsv...)
 - Use warnings when loading data like in test?

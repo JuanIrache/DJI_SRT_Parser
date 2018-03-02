@@ -1,12 +1,16 @@
 "use_strict";
-var http;
-let metadata;
-let rawMetadata;
-let smoothened;
-let callbackF;
-let loaded;
 
-let srtToObject = function(srt) {//convert SRT strings file into array of objects
+function DJI_SRT_Parser() {
+	this.any = Math.random();
+	this.http = null;
+	this.metadata = {};
+	this.rawMetadata = [];
+	this.smoothened = 0;
+	this.callbackF = null;
+	this.loaded = false;
+}
+
+DJI_SRT_Parser.prototype.srtToObject = function(srt) {//convert SRT strings file into array of objects
 	let converted = [];
 	const timecodeRegEx = /(\d{2}:\d{2}:\d{2},\d{3})\s-->\s/;
 	const packetRegEx = /^\d+$/;
@@ -39,7 +43,7 @@ let srtToObject = function(srt) {//convert SRT strings file into array of object
 	return converted;
 }
 
-let interpretMetadata = function(arr,smooth) {
+DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
   let computeSpeed = function(arr) {//computes 3 types of speed in km/h
   	let computed = JSON.parse(JSON.stringify(arr));
   	let measure = function(lat1, lon1, lat2, lon2){  // generally used geo measurement function. Source: https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
@@ -250,7 +254,7 @@ let interpretMetadata = function(arr,smooth) {
     if (smoothing !== 0)  {
       newArr = smoothenGPS(newArr,smoothing);
     }
-		smoothened = smoothing;
+		this.smoothened = smoothing;
     newArr = computeSpeed(newArr);
   }
   let stats = computeStats(newArr);
@@ -264,7 +268,7 @@ let interpretMetadata = function(arr,smooth) {
   }
 }
 
-let createCSV = function(raw) {
+DJI_SRT_Parser.prototype.createCSV = function(raw) {
   let csvExtract = function(obj,pre,val) {
     let prefix = pre ? pre+"_" : "";
   	let results = [];
@@ -281,7 +285,7 @@ let createCSV = function(raw) {
   	return results.length ? results : null;
   }
   let rows = [];
-  let array = raw ? rawMetadata : metadata.packets;
+  let array = raw ? this.rawMetadata : this.metadata.packets;
   rows.push(csvExtract(array[0]));
   array.forEach(pck => rows.push(csvExtract(pck,"",true)));
   if (rows.length <1) return null;
@@ -297,9 +301,10 @@ let createCSV = function(raw) {
   return csvContent;
 }
 
-let loadFile = function(file,cb) {
-  loaded = false;
-  callbackF = cb;
+DJI_SRT_Parser.prototype.loadFile = function(file,cb) {
+	let context = this;
+  this.loaded = false;
+  this.callbackF = cb;
   let loadFileBrowser = function(file) {
     let readTextFile = function(file,f) {
         let rawFile = new XMLHttpRequest();
@@ -318,13 +323,13 @@ let loadFile = function(file,cb) {
     readTextFile(file,flow);
   }
   let loadFileNode = function(file) {
-    http = require('http');
+    this.http = require('http');
     var fs = require('fs');
     fs.readFile(file, function (err, data) {
       if (err) {
         throw err;
       }
-      flow(data.toString());
+      context.flow(data.toString());
     });
   }
   if (typeof window === 'undefined') {
@@ -334,20 +339,32 @@ let loadFile = function(file,cb) {
   }
 }
 
-let flow = function(data) {
-  rawMetadata = srtToObject(data);
-  metadata = interpretMetadata(rawMetadata);
-  loaded = true;
-  callbackF();
+DJI_SRT_Parser.prototype.flow = function(data) {
+  this.rawMetadata = this.srtToObject(data);
+  this.metadata = this.interpretMetadata(this.rawMetadata);
+  this.loaded = true;
+  this.callbackF();
 }
 
-module.exports = function(file) {
-  return {
-    load:function(file,cb) {loadFile(file,cb)},
-    getSmoothing:function() {return loaded ? smoothened : notReady()},
-    setSmoothing:function(smooth) {if (loaded) {metadata = interpretMetadata(rawMetadata,smooth)} else {notReady()}},
-    rawMetadata:function() {return loaded ? rawMetadata : notReady()},
-    metadata:function() {return loaded ? metadata : notReady()},
-    toCSV:function(raw) {return loaded ? createCSV(raw) : notReady()}
-  }
-}();
+function notReady() {
+	console.log("Data not ready");
+	return null;
+}
+
+function toExport(context,file,cb) {
+	context.loadFile(file,cb);
+	return {
+    getSmoothing:function() {return context.loaded ? context.smoothened : notReady()},
+    setSmoothing:function(smooth) {if (context.loaded) {context.metadata = context.interpretMetadata(context.rawMetadata,smooth)} else {notReady()}},
+    rawMetadata:function() {return context.loaded ? context.rawMetadata : notReady()},
+    metadata:function() {return context.loaded ? context.metadata : notReady()},
+    toCSV:function(raw) {return context.loaded ? context.createCSV(raw) : notReady()}
+	}
+}
+
+function create_DJI_SRT_Parser(file,cb) {
+	var instance = new DJI_SRT_Parser();
+	return toExport(instance,file,cb);
+}
+
+module.exports = create_DJI_SRT_Parser;

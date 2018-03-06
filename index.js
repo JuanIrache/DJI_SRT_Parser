@@ -36,10 +36,9 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {//convert SRT strings file
     }
   });
   if (converted.length < 1) {
-    console.log("error converting object");
+    console.log("Error converting object");
     return null;
   }
-  console.log("in srtToObject");
   return converted;
 }
 
@@ -224,7 +223,6 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
     return interpreted;
   }
   let smoothenGPS = function(arr,amount) {  //averages positions with the specified surrounding seconds. Necessary due to DJI's SRT logs low precision
-  // console.log("arr",arr);
     let smoothArr = JSON.parse(JSON.stringify(arr));
     for (let i=0; i<arr.length; i++) {
       let start = parseInt(i-amount);
@@ -263,7 +261,6 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
     console.log("Error intrerpreting metadata");
     return null;
   }
-  console.log("in interpretMetadata");
   return {
     packets:newArr,
     stats:stats
@@ -313,9 +310,7 @@ DJI_SRT_Parser.prototype.loadFile = function(file,fileName) {
 DJI_SRT_Parser.prototype.flow = function(data,context) {
   let cntx = context || this;
   cntx.rawMetadata = cntx.srtToObject(data);
-  console.log("after srtToObject");
   cntx.metadata = cntx.interpretMetadata(cntx.rawMetadata);
-  console.log("after interpretMetadata");
   cntx.loaded = true;
 }
 
@@ -338,7 +333,6 @@ function toExport(context,file,fileName) {
 }
 
 function create_DJI_SRT_Parser(file,fileName) {
-  // console.log("file",file);
   var instance = new DJI_SRT_Parser();
   return toExport(instance,file,fileName);
 }

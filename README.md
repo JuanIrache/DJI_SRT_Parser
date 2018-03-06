@@ -16,27 +16,30 @@ $ npm install --save dji_srt_parser
 //Load module
 let DJISRTParser = require('dji_srt_parser');
 
-//Specify data source
-let file = "filePath";
+//Specify data source name
+let fileName = "filePath";
 
-//You can create multiple instances, one for reading each SRT file. Specify callback to run when loaded
-let DJIData = DJISRTParser(file+".SRT",confirm);
+//And load the data in a string (with your preferred method)
+let dataString = readTextFile(fileName);
 
-//Once loaded...
-function confirm() {
-  //rawMetadata() returns an array of objects with labels and the unmodified SRT data in the form of strings
-  console.log(DJIData.rawMetadata());
-  //metadata() returns an object with 2 elements
-  //(1) a packets array similar to rawMetadata() but with smoothing applied to GPS locations (see below why smoothing is used) and with computed speeds in 2d, 3d and vertical
-  //(2) a stats object containing stats like minimum, average and maximum speeds based on the interpreted data
-  console.log(DJIData.metadata());
-  //toCSV() exports the current interpretation of data to a CSV spreadsheet the optional value raw exports the raw data instead
-  DJIData.toCSV();
-  //getSmoothing() returns the current smoothing value (how many data packets to average with, in each array direction)
-  console.log(DJIData.getSmoothing());
-  //setSmoothing() modifies the current smoothing value, 0 for no smoothing
-  console.log(DJIData.setSmoothing(0));
-}
+//You can create multiple instances, one for reading each SRT file. Specify data as a string and filename for future reference
+let DJIData = DJISRTParser(dataString,fileName);
+
+//rawMetadata() returns an array of objects with labels and the unmodified SRT data in the form of strings
+console.log(DJIData.rawMetadata());
+//metadata() returns an object with 2 elements
+//(1) a packets array similar to rawMetadata() but with smoothing applied to GPS locations (see below why smoothing is used) and with computed speeds in 2d, 3d and vertical
+//(2) a stats object containing stats like minimum, average and maximum speeds based on the interpreted data
+console.log(DJIData.metadata());
+//toCSV() exports the current interpretation of data to a CSV spreadsheet the optional value raw exports the raw data instead
+let csvData = DJIData.toCSV();
+//getSmoothing() returns the current smoothing value (how many data packets to average with, in each array direction)
+console.log(DJIData.getSmoothing());
+//setSmoothing() modifies the current smoothing value, 0 for no smoothing
+console.log(DJIData.setSmoothing(0));
+//getFileName() returns the filename, useful if you loaded multiple files in multiple instances
+console.log(DJIData.getFileName());
+
 ```
 Smoothing is applied when interpreting the data because the GPS values provided by DJI are not accurate enough. They don't have enough digits. We average them with the surrounding values to create more pleasant paths and to be able to compute somewhat meaningful speeds. The interpreted values are not necessarily more accurate.
 

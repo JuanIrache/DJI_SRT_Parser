@@ -5,7 +5,6 @@ function DJI_SRT_Parser() {
   this.metadata = {};
   this.rawMetadata = [];
   this.smoothened = 0;
-  this.callbackF = null;
   this.loaded = false;
 }
 
@@ -17,6 +16,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {//convert SRT strings file
   const valueRegEx = /\b([A-Za-z]+)\s?:[\s\[a-zA-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
   const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}/;
   srt = srt.split(/[\n\r]/);
+
   srt.forEach(line => {
     let match;
     if (packetRegEx.test(line)) {//new packet
@@ -39,6 +39,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {//convert SRT strings file
     console.log("error converting object");
     return null;
   }
+  console.log("in srtToObject");
   return converted;
 }
 
@@ -223,6 +224,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
     return interpreted;
   }
   let smoothenGPS = function(arr,amount) {  //averages positions with the specified surrounding seconds. Necessary due to DJI's SRT logs low precision
+  // console.log("arr",arr);
     let smoothArr = JSON.parse(JSON.stringify(arr));
     for (let i=0; i<arr.length; i++) {
       let start = parseInt(i-amount);
@@ -261,6 +263,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
     console.log("Error intrerpreting metadata");
     return null;
   }
+  console.log("in interpretMetadata");
   return {
     packets:newArr,
     stats:stats
@@ -300,51 +303,20 @@ DJI_SRT_Parser.prototype.createCSV = function(raw) {
   return csvContent;
 }
 
-DJI_SRT_Parser.prototype.loadFile = function(file,cb) {
+DJI_SRT_Parser.prototype.loadFile = function(file,fileName) {
   let context = this;
-  this.fileName = file;
+  this.fileName = fileName;
   this.loaded = false;
-  this.callbackF = cb;
-  let loadFileBrowser = function(file) {
-    let readTextFile = function(file,f) {
-        let rawFile = new XMLHttpRequest();
-        let allText;
-        rawFile.open("GET", file, true);
-        rawFile.onreadystatechange = function() {
-            if(rawFile.readyState === 4) {
-                if(rawFile.status === 200 || rawFile.status == 0) {
-                    let allText = rawFile.responseText;
-                    f(allText,context);
-                }
-            }
-        }
-        rawFile.send(null);
-    }
-    readTextFile(file,context.flow);
-  }
-  let loadFileNode = function(file) {
-    let http = require('http');
-    var fs = require('fs');
-    fs.readFile(file, function (err, data) {
-      if (err) {
-        throw err;
-      }
-      context.flow(data.toString());
-    });
-  }
-  if (typeof window === 'undefined') {
-    loadFileNode(file);
-  } else {
-    loadFileBrowser(file);
-  }
+  this.flow(file);
 }
 
 DJI_SRT_Parser.prototype.flow = function(data,context) {
   let cntx = context || this;
   cntx.rawMetadata = cntx.srtToObject(data);
+  console.log("after srtToObject");
   cntx.metadata = cntx.interpretMetadata(cntx.rawMetadata);
+  console.log("after interpretMetadata");
   cntx.loaded = true;
-  cntx.callbackF();
 }
 
 function notReady() {
@@ -352,8 +324,9 @@ function notReady() {
   return null;
 }
 
-function toExport(context,file,cb) {
-  context.loadFile(file,cb);
+function toExport(context,file,fileName) {
+  context.loadFile(file,fileName);
+
   return {
     getSmoothing:function() {return context.loaded ? context.smoothened : notReady()},
     setSmoothing:function(smooth) {if (context.loaded) {context.metadata = context.interpretMetadata(context.rawMetadata,smooth)} else {notReady()}},
@@ -364,9 +337,10 @@ function toExport(context,file,cb) {
   }
 }
 
-function create_DJI_SRT_Parser(file,cb) {
+function create_DJI_SRT_Parser(file,fileName) {
+  // console.log("file",file);
   var instance = new DJI_SRT_Parser();
-  return toExport(instance,file,cb);
+  return toExport(instance,file,fileName);
 }
 
 module.exports = create_DJI_SRT_Parser;

@@ -300,11 +300,18 @@ DJI_SRT_Parser.prototype.createCSV = function(raw) {
   return csvContent;
 }
 
-DJI_SRT_Parser.prototype.loadFile = function(file,fileName) {
+DJI_SRT_Parser.prototype.loadFile = function(data,fileName) {
   let context = this;
   this.fileName = fileName;
   this.loaded = false;
-  this.flow(file);
+  let decode = function(d) {
+    if (d.split(",")[0] == "data:;base64") {
+      return  atob(d.split(",")[1]);
+    } else {
+      return d;
+    }
+  }
+  this.flow(decode(data));
 }
 
 DJI_SRT_Parser.prototype.flow = function(data,context) {

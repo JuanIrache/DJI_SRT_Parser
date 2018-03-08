@@ -28,7 +28,7 @@ let DJIData = DJISRTParser(dataString,fileName);
 //rawMetadata() returns an array of objects with labels and the unmodified SRT data in the form of strings
 console.log(DJIData.rawMetadata());
 //metadata() returns an object with 2 elements
-//(1) a packets array similar to rawMetadata() but with smoothing applied to GPS locations (see below why smoothing is used) and with computed speeds in 2d, 3d and vertical
+//(1) a packets array similar to rawMetadata() but with smoothing applied to GPS locations (see below why smoothing is used), distances and with computed speeds in 2d, 3d and vertical
 //(2) a stats object containing stats like minimum, average and maximum speeds based on the interpreted data
 console.log(DJIData.metadata());
 //toCSV() exports the current interpretation of data to a CSV spreadsheet the optional value raw exports the raw data instead

@@ -56,6 +56,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       var d = R * c;
       return d * 1000; // meters
     }
+    let accDistance = 0;
     computed = computed.map((pck,i,cmp) => {
       let result = JSON.parse(JSON.stringify(pck));
       result.SPEED = {
@@ -63,6 +64,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
         VERTICAL:0,
         THREED:0
       };
+      result.DISTANCE = 0;
       if (i>0) {
         let origin2d = [cmp[i-1].GPS.LATITUDE,cmp[i-1].GPS.LATITUDE];
         let destin2d = [pck.GPS.LATITUDE,pck.GPS.LATITUDE];
@@ -81,6 +83,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
         let time = (new Date(pck.DATE)-new Date(cmp[i-1].DATE))/1000.0;//seconds
         time = time < 1 ? 1 : time;//make sure we are not dividing by zero, not sure why sometimes two packets have the same timestamp
         time /= 60*60;
+        accDistance += distance3D*1000;
+        result.DISTANCE = accDistance;
         result.SPEED.TWOD = distance2D / time;
         result.SPEED.VERTICAL = distanceVert / time;
         result.SPEED.THREED = distance3D / time;
@@ -157,8 +161,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
     } else if (arr[arr.length-1].DATE != undefined) {
       result.DURATION = (new Date(arr[arr.length-1].DATE) - new Date(arr[0].DATE)); //duration of video in milliseconds
     }
-    if (result.SPEED != undefined && result.DURATION != undefined && result.SPEED.THREED.avg != undefined) {
-      result.DISTANCE = (result.DURATION * (result.SPEED.THREED.avg * 1000 / (60*60))) ; //dsitance of flight in meters
+    if (arr[arr.length-1].DISTANCE) {
+      result.DISTANCE = arr[arr.length-1].DISTANCE ; //dsitance of flight in meters
     }
     return result;
   }
@@ -254,7 +258,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       newArr = smoothenGPS(newArr,smoothing);
     }
     this.smoothened = smoothing;
-    newArr = computeSpeed(newArr);
+    newArr = computeSpeed(newArr,);
   }
   let stats = computeStats(newArr);
   if (newArr.length < 1) {

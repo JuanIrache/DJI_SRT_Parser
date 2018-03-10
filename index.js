@@ -344,8 +344,13 @@ function toExport(context,file,fileName) {
 }
 
 function create_DJI_SRT_Parser(file,fileName) {
-  var instance = new DJI_SRT_Parser();
-  return toExport(instance,file,fileName);
+  try {
+    var instance = new DJI_SRT_Parser();
+    return toExport(instance,file,fileName);
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
 }
 
 module.exports = create_DJI_SRT_Parser;

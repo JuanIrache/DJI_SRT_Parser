@@ -1,6 +1,6 @@
 {
   "name": "dji_srt_parser",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Parses and interprets DJI's drones SRT metadata",
   "main": "index.js",
   "scripts": {

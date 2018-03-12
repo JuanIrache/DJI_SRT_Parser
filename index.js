@@ -183,7 +183,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       } else if (key.toUpperCase() === "TIMECODE"){
         interpreted = datum;
       } else if (key.toUpperCase() === "DATE") {
-        interpreted = new Date(datum).getTime();
+        let date = datum.replace(/\./g,"-");
+        interpreted = new Date(date).getTime();
       } else if (key.toUpperCase() === "EV") {
         interpreted = eval(datum);
       } else if (key.toUpperCase() === "SHUTTER") {

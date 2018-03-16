@@ -1,5 +1,3 @@
-"use_strict";
-
 function DJI_SRT_Parser() {
   this.fileName = "";
   this.metadata = {};
@@ -183,7 +181,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       } else if (key.toUpperCase() === "TIMECODE"){
         interpreted = datum;
       } else if (key.toUpperCase() === "DATE") {
-        let date = datum.replace(/\./g,"-");
+        let date = datum.replace(/\./g,"-").replace(" ","T");
         interpreted = new Date(date).getTime();
       } else if (key.toUpperCase() === "EV") {
         interpreted = eval(datum);
@@ -259,7 +257,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       newArr = smoothenGPS(newArr,smoothing);
     }
     this.smoothened = smoothing;
-    newArr = computeSpeed(newArr,);
+    newArr = computeSpeed(newArr);
   }
   let stats = computeStats(newArr);
   if (newArr.length < 1) {

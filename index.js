@@ -166,32 +166,32 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
   }
   let interpretPacket = function (pck) {
     let interpretItem = function (key,datum) {//interprets known values to most useful data type
-      let interpreted = {};
+      let interpretedI = {};
       if (key.toUpperCase() === "GPS") {
-        interpreted = {
+        interpretedI = {
           LATITUDE:Number(datum[1]),
           LONGITUDE:Number(datum[0]),
           ALTITUDE:Number(datum[2])
         };
       } else if (key.toUpperCase() === "HOME") {
-        interpreted = {
+        interpretedI = {
           LATITUDE:Number(datum[1]),
           LONGITUDE:Number(datum[0])
         };
       } else if (key.toUpperCase() === "TIMECODE"){
-        interpreted = datum;
+        interpretedI = datum;
       } else if (key.toUpperCase() === "DATE") {
         let date = datum.replace(/\./g,"-").replace(" ","T");
-        interpreted = new Date(date).getTime();
+        interpretedI = new Date(date).getTime();
       } else if (key.toUpperCase() === "EV") {
-        interpreted = eval(datum);
+        interpretedI = eval(datum);
       } else if (key.toUpperCase() === "SHUTTER") {
-        interpreted = Number(datum.replace("1/", ""));
+        interpretedI = Number(datum.replace("1/", ""));
       } else {
-        interpreted = Number(datum.replace(/[a-zA-Z]/g, ""));
+        interpretedI = Number(datum.replace(/[a-zA-Z]/g, ""));
       }
-      if (interpreted.constructor === Object && Object.keys(interpreted).length === 0) return null;
-      return interpreted;
+      if (interpretedI.constructor === Object && Object.keys(interpretedI).length === 0) return null;
+      return interpretedI;
     }
     let fillMissingFields = function(pckt) {
       let replaceKey = function(o,old_key,new_key) {
@@ -217,13 +217,13 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       }
       return pckt;
     }
-    interpreted = {};
+    let interpretedP = {};
     for (let item in pck) {
-      interpreted[item.toUpperCase()] = interpretItem(item,pck[item]);
+      interpretedP[item.toUpperCase()] = interpretItem(item,pck[item]);
     }
-    interpreted = fillMissingFields(interpreted);
-    if (interpreted.constructor === Object && Object.keys(interpreted).length === 0) return null;
-    return interpreted;
+    interpretedP = fillMissingFields(interpretedP);
+    if (interpretedP.constructor === Object && Object.keys(interpretedP).length === 0) return null;
+    return interpretedP;
   }
   let smoothenGPS = function(arr,amount) {  //averages positions with the specified surrounding seconds. Necessary due to DJI's SRT logs low precision
     let smoothArr = JSON.parse(JSON.stringify(arr));

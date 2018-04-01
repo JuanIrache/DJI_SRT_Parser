@@ -10,7 +10,7 @@ Please let me know if you create something with this :).
 
 Using npm:
 ```shell
-$ npm install --save dji_srt_parser
+$ npm install dji_srt_parser
 ```
 
 ## Usage

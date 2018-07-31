@@ -33,14 +33,16 @@ console.log(DJIData.rawMetadata());
 //(1) a packets array similar to rawMetadata() but with smoothing applied to GPS locations (see below why smoothing is used), distances and with computed speeds in 2d, 3d and vertical
 //(2) a stats object containing stats like minimum, average and maximum speeds based on the interpreted data
 console.log(DJIData.metadata());
-//toCSV() exports the current interpretation of data to a CSV spreadsheet the optional value raw exports the raw data instead
-let csvData = DJIData.toCSV();
 //getSmoothing() returns the current smoothing value (how many data packets to average with, in each array direction)
 console.log(DJIData.getSmoothing());
 //setSmoothing() modifies the current smoothing value, 0 for no smoothing
 console.log(DJIData.setSmoothing(0));
 //getFileName() returns the filename, useful if you loaded multiple files in multiple instances
 console.log(DJIData.getFileName());
+//toCSV() exports the current interpretation of data to the GeoJSON format. The optional value raw exports the raw data instead
+let csvData = DJIData.toGeoJSON();
+//toGeoJSON() exports the current interpretation of data to a CSV spreadsheet format. The optional value raw exports the raw data instead
+let csvData = DJIData.toCSV();
 
 ```
 Smoothing is applied when interpreting the data because the GPS values provided by DJI are not accurate enough. They don't have enough digits. We average them with the surrounding values to create more pleasant paths and to be able to compute somewhat meaningful speeds. The interpreted values are not necessarily more accurate.

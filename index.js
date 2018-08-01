@@ -367,9 +367,11 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
       }
     }
 
-    let bestElevation = getElevation(obj);
-    if (bestElevation != null) {
-      result.geometry.coordinates[2] = bestElevation;
+    if (!raw) {//only modify elevation if user does want interpreted data, not raw
+      let bestElevation = getElevation(obj);
+      if (bestElevation != null) {
+        result.geometry.coordinates[2] = bestElevation;
+      }
     }
 
     return result;

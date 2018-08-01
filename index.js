@@ -85,17 +85,6 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
     return computed;
   }
 
-  let getElevation = function(src) {
-    if (src.BAROMETER != undefined) {
-      return src.BAROMETER;
-    } else if (src.HB != undefined) {
-      return src.HB;
-    } else if (src.HS != undefined) {
-      return src.HS;
-    }
-    return 0;
-  }
-
   let computeStats = function (arr) {
     let statsObject = function(obj) {
       if (obj.constructor === Object && Object.keys(obj).length === 0) return null;
@@ -271,6 +260,17 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
   }
 }
 
+function getElevation(src) {//GPS elevation data is almost useless, so we replace with barometer if available
+  if (src.BAROMETER != undefined) {
+    return src.BAROMETER;
+  } else if (src.HB != undefined) {
+    return src.HB;
+  } else if (src.HS != undefined) {
+    return src.HS;
+  }
+  return null;
+}
+
 DJI_SRT_Parser.prototype.createCSV = function(raw) {
   let csvExtract = function(obj,pre,val) {
     let prefix = pre ? pre+"_" : "";
@@ -339,6 +339,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
       },
       properties: {}
     };
+
     for (let elt in obj) {
       if (elt === "DATE") {
         if (raw) {
@@ -366,6 +367,11 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
       }
     }
 
+    let bestElevation = getElevation(obj);
+    if (bestElevation != null) {
+      result.geometry.coordinates[2] = bestElevation;
+    }
+
     return result;
   }
   let GeoJSONContent = {
@@ -374,6 +380,24 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
   }
   let array = raw ? this.rawMetadata : this.metadata.packets;
   array.forEach(pck => GeoJSONContent.features.push(GeoJSONExtract(pck,raw)));
+
+  let createLinestring = function(features) {
+    let result = {
+      type: "Feature",
+      properties: { "source": "dji-srt-parser"},
+      geometry: {
+        type: "LineString",
+        coordinates: []
+      }
+    };
+
+    features.forEach(feature => {
+      result.geometry.coordinates.push(feature.geometry.coordinates);
+    });
+    return result;
+  }
+
+  GeoJSONContent.features.push(createLinestring(GeoJSONContent.features));
 
   if (!GeoJSONContent.features) {
     console.log("Error creating GeoJSON");
@@ -400,7 +424,6 @@ DJI_SRT_Parser.prototype.loadFile = function(data,fileName) {
 DJI_SRT_Parser.prototype.flow = function(data,context) {
   let cntx = context || this;
   cntx.rawMetadata = cntx.srtToObject(data);
-  console.log(cntx.rawMetadata[0].DATE);
   cntx.metadata = cntx.interpretMetadata(cntx.rawMetadata);
   cntx.loaded = true;
 }

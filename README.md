@@ -27,6 +27,9 @@ let dataString = readTextFile(fileName);
 //You can create multiple instances, one for reading each SRT file. Specify data as a string and filename for future reference
 let DJIData = DJISRTParser(dataString,fileName);
 
+//toGeoJSON() exports the current interpretation of data to a CSV spreadsheet format. The optional value raw exports the raw data instead. You can then use tokml or togpx modules to convert to those formats
+let geoJSON = DJIData.toGeoJSON();
+
 //rawMetadata() returns an array of objects with labels and the unmodified SRT data in the form of strings
 console.log(DJIData.rawMetadata());
 //metadata() returns an object with 2 elements
@@ -40,9 +43,8 @@ console.log(DJIData.setSmoothing(0));
 //getFileName() returns the filename, useful if you loaded multiple files in multiple instances
 console.log(DJIData.getFileName());
 //toCSV() exports the current interpretation of data to the GeoJSON format. The optional value raw exports the raw data instead
-let csvData = DJIData.toGeoJSON();
-//toGeoJSON() exports the current interpretation of data to a CSV spreadsheet format. The optional value raw exports the raw data instead
 let csvData = DJIData.toCSV();
+
 
 ```
 Smoothing is applied when interpreting the data because the GPS values provided by DJI are not accurate enough. They don't have enough digits. We average them with the surrounding values to create more pleasant paths and to be able to compute somewhat meaningful speeds. The interpreted values are not necessarily more accurate.

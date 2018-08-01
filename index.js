@@ -342,11 +342,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
 
     for (let elt in obj) {
       if (elt === "DATE") {
-        if (raw) {
-          result.properties.timestamp = obj[elt];
-        } else {
-          result.properties.timestamp = obj[elt];
-        }
+        result.properties.timestamp = obj[elt];
       } else if (elt === "GPS") {
         result.geometry.coordinates = extractCoordinates(obj[elt]);
       // } else if (elt === "HOME") {//no, readers don't understand it
@@ -386,7 +382,10 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
   let createLinestring = function(features) {
     let result = {
       type: "Feature",
-      properties: { "source": "dji-srt-parser"},
+      properties: {
+        "source": "dji-srt-parser",
+        timestamp: []
+      },
       geometry: {
         type: "LineString",
         coordinates: []
@@ -395,6 +394,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
 
     features.forEach(feature => {
       result.geometry.coordinates.push(feature.geometry.coordinates);
+      result.properties.timestamp.push(feature.properties.timestamp);
     });
     return result;
   }

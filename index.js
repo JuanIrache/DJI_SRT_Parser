@@ -342,20 +342,20 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
     for (let elt in obj) {
       if (elt === "DATE") {
         if (raw) {
-          result.properties.timeStamp = new Date(obj[elt]);
+          result.properties.timestamp = obj[elt];
         } else {
-          result.properties.timeStamp = obj[elt];
+          result.properties.timestamp = obj[elt];
         }
       } else if (elt === "GPS") {
         result.geometry.coordinates = extractCoordinates(obj[elt]);
-      } else if (elt === "HOME") {
-        result.properties.HOME = {
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: extractCoordinates(obj[elt])
-          },
-        };
+      // } else if (elt === "HOME") {//no, readers don't understand it
+      //   result.properties.HOME = {
+      //     type: "Feature",
+      //     geometry: {
+      //       type: "Point",
+      //       coordinates: extractCoordinates(obj[elt])
+      //     },
+      //   };
       } else if (typeof obj[elt] === "object" && obj[elt] != null) {
         let children = extractProps(obj[elt],elt);
         children.forEach(child => {

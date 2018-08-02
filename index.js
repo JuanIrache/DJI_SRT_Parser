@@ -384,13 +384,21 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
       type: "Feature",
       properties: {
         "source": "dji-srt-parser",
-        timestamp: []
+        timestamp: [],
+
       },
       geometry: {
         type: "LineString",
         coordinates: []
       }
     };
+
+    let props = features[0].properties;
+    for (let prop in props) {
+      if (!["DATE","TIMECODE","GPS","timestamp","BAROMETER","DISTANCE","SPEED_THREED","SPEED_TWOD","SPEED_VERTICAL","HB","HS"].includes(prop)) {
+        result.properties[prop] = props[prop];
+      }
+    }
 
     features.forEach(feature => {
       result.geometry.coordinates.push(feature.geometry.coordinates);

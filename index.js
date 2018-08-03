@@ -269,6 +269,8 @@ function getElevation(src) {//GPS elevation data is almost useless, so we replac
     return src.HB;
   } else if (src.HS != undefined) {
     return src.HS;
+  } else if (src.GPS != undefined && src.GPS.ALTITUDE) {
+    return src.GPS.ALTITUDE;
   }
   return null;
 }
@@ -439,7 +441,6 @@ DJI_SRT_Parser.prototype.flow = function(data,preparedData) {
   } else {
     this.rawMetadata = this.srtToObject(data);
   }
-  console.log(this.rawMetadata);
   this.metadata = this.interpretMetadata(this.rawMetadata);
   this.loaded = true;
 }

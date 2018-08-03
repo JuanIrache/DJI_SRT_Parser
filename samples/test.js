@@ -62,13 +62,19 @@ function confirm(data) {
 			elevation = DJIfile.metadata().stats.HB.max;
 		} else if (DJIfile.metadata().stats.HS) {
 			elevation = DJIfile.metadata().stats.HS.max;
+		} else if (DJIfile.metadata().stats.GPS && DJIfile.metadata().stats.GPS.ALTITUDE) {
+			elevation = DJIfile.metadata().stats.GPS.ALTITUDE.max;
 		}
 		if (elevation) {
 			console.log("Highest registered elevation was "+elevation+" meters");
 		} else {
 			console.log("\x1b[31m%s\x1b[0m", "No elevation data");
 		}
-		console.log("The video recorded for "+DJIfile.metadata().stats.DURATION/1000+" seconds");
+		if (typeof DJIfile.metadata().stats.DURATION !== "number") {
+			console.log("\x1b[31m%s\x1b[0m", "Duration is missing");
+		} else {
+			console.log("The video recorded for "+DJIfile.metadata().stats.DURATION/1000+" seconds");
+		}
 		if (DJIfile.metadata().stats.GPS) {
 			console.log("While flying for "+Math.round(DJIfile.metadata().stats.DISTANCE)+" meters");
 		} else {

@@ -44,6 +44,26 @@ console.log(DJIData.setSmoothing(0));
 console.log(DJIData.getFileName());
 //toCSV() exports the current interpretation of data to the GeoJSON format. The optional value raw exports the raw data instead
 let csvData = DJIData.toCSV();
+//Now you can also load a GeoJSON (or JSON) file directly into the rawMetadata field. This can be useful if you want to import data from other sources into the syste,
+let DJIData = DJISRTParser(JSONDataString,JSONfileName,true);
+//These data must follow the same structure as rawMetadata() usually has:
+// {
+//   "TIMECODE":"00:00:01,000",
+//   "HOME":[
+//     "149.0251",
+//     "-20.2532"
+//   ],
+//   "DATE":"2017.08.05 14:11:51",
+//   "GPS":[
+//     "149.0251",
+//     "-20.2533",
+//     "16"
+//   ],
+//   "BAROMETER":"1.9",
+//   "ISO":"100",
+//   "Shutter":"60",
+//   "Fnum":"2.2"
+// }
 
 
 ```

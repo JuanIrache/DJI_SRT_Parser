@@ -174,7 +174,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       } else if (key.toUpperCase() === "TIMECODE"){
         interpretedI = datum;
       } else if (key.toUpperCase() === "DATE") {
-        let date = datum.replace(/\./g,"-").replace(" ","T").replace(/-([0-9](\b|[a-zA-Z]))/g,"-0$1");
+        const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{3})?Z/;
+        let date = datum;
+        if (!isoDateRegex.exec(datum)) date = datum.replace(/\./g,"-").replace(" ","T").replace(/-([0-9](\b|[a-zA-Z]))/g,"-0$1");
         interpretedI = new Date(date).getTime();
       } else if (key.toUpperCase() === "EV") {
         interpretedI = eval(datum);
@@ -417,25 +419,29 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
   return JSON.stringify(GeoJSONContent);
 }
 
-DJI_SRT_Parser.prototype.loadFile = function(data,fileName) {
+DJI_SRT_Parser.prototype.loadFile = function(data,fileName,preparedData) {
   let context = this;
   this.fileName = fileName;
   this.loaded = false;
   let decode = function(d) {
-    if (d.split(",")[0] == "data:;base64") {
+    if (d.split(",")[0].includes("base64")) {
       return  atob(d.split(",")[1]);
     } else {
       return d;
     }
   }
-  this.flow(decode(data));
+  this.flow(decode(data),preparedData);
 }
 
-DJI_SRT_Parser.prototype.flow = function(data,context) {
-  let cntx = context || this;
-  cntx.rawMetadata = cntx.srtToObject(data);
-  cntx.metadata = cntx.interpretMetadata(cntx.rawMetadata);
-  cntx.loaded = true;
+DJI_SRT_Parser.prototype.flow = function(data,preparedData) {
+  if (preparedData) {
+    this.rawMetadata = JSON.parse(data);
+  } else {
+    this.rawMetadata = this.srtToObject(data);
+  }
+  console.log(this.rawMetadata);
+  this.metadata = this.interpretMetadata(this.rawMetadata);
+  this.loaded = true;
 }
 
 function notReady() {
@@ -443,8 +449,8 @@ function notReady() {
   return null;
 }
 
-function toExport(context,file,fileName) {
-  context.loadFile(file,fileName);
+function toExport(context,file,fileName,preparedData) {
+  context.loadFile(file,fileName,preparedData);
 
   return {
     getSmoothing:function() {return context.loaded ? context.smoothened : notReady()},
@@ -457,10 +463,10 @@ function toExport(context,file,fileName) {
   }
 }
 
-function create_DJI_SRT_Parser(file,fileName) {
+function create_DJI_SRT_Parser(file,fileName,preparedData) {
   try {
     var instance = new DJI_SRT_Parser();
-    return toExport(instance,file,fileName);
+    return toExport(instance,file,fileName,preparedData);
   } catch (err) {
     console.log(err);
     return null;

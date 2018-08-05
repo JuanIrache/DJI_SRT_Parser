@@ -81,7 +81,4 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 - ISO, shutter and EV (not always present)
 
 ## TODO
-- Provide arrays of only one field?
-- Split some functions into other modules? (createcsv...)
-- Use warnings when loading data like in test?
-- Export data for After Effects
+- Fix date in KML and JSON

@@ -426,7 +426,7 @@ DJI_SRT_Parser.prototype.loadFile = function(data,fileName,preparedData) {
   this.fileName = fileName;
   this.loaded = false;
   let decode = function(d) {
-    if (d.split(",")[0].includes("base64")) {
+    if (typeof d ==="string" && d.split(",")[0].includes("base64")) {
       return  atob(d.split(",")[1]);
     } else {
       return d;

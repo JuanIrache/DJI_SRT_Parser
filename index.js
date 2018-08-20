@@ -10,7 +10,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {//convert SRT strings file
   let converted = [];
   const timecodeRegEx = /(\d{2}:\d{2}:\d{2},\d{3})\s-->\s/;
   const packetRegEx = /^\d+$/;
-  const arrayRegEx = /\b([A-Za-z]+)\(([-\+\d.,]+)\)/g;
+  const arrayRegEx = /\b([A-Za-z]+)\(([-\+\w.,/]+)\)/g;
   const valueRegEx = /\b([A-Za-z]+)\s?:[\s\[a-zA-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
   const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}/;
   srt = srt.split(/[\n\r]/);
@@ -44,6 +44,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
   let computeSpeed = function(arr) {//computes 3 types of speed in km/h
   let computed = JSON.parse(JSON.stringify(arr));
     let measure = function(lat1, lon1, lat2, lon2){  // generally used geo measurement function. Source: https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
+      if ([lat1, lon1, lat2, lon2].reduce(((acc,val) => !isNum(val) ? true:acc),false)) {
+        return 0;//set distance to 0 if there are null or nans in positions
+      }
       var R = 6378.137; // Radius of earth in KM
       var dLat = lat2 * Math.PI / 180 - lat1 * Math.PI / 180;
       var dLon = lon2 * Math.PI / 180 - lon1 * Math.PI / 180;
@@ -137,9 +140,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
         } else if (typeof select[0] === "object" && select[0] != null) {
           recursiveStatsExtraction(result[elt], select);
         } else {
-          result[elt].min = select.reduce((acc,val) => val < acc ? val : acc,Infinity);
-          result[elt].max = select.reduce((acc,val) => val > acc ? val : acc,-Infinity);
-          result[elt].avg = select.reduce((acc,val) => acc+val ,0)/select.length;
+          result[elt].min = select.reduce((acc,val) => val < acc && isNum(val) ? val : acc,Infinity);
+          result[elt].max = select.reduce((acc,val) => val > acc && isNum(val) ? val : acc,-Infinity);
+          result[elt].avg = select.reduce((acc,val) => isNum(val) ? acc+val : acc ,0)/select.length;
         }
       }
       return result;
@@ -162,9 +165,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       let interpretedI = {};
       if (key.toUpperCase() === "GPS") {
         interpretedI = {
-          LATITUDE:Number(datum[1]),
-          LONGITUDE:Number(datum[0]),
-          ALTITUDE:Number(datum[2])
+          LATITUDE:isNum(datum[1]) ? Number(datum[1]) : "n/a",
+          LONGITUDE:isNum(datum[0]) ? Number(datum[0]) : "n/a",
+          ALTITUDE:isNum(datum[2]) ? Number(datum[2]) : "n/a"
         };
       } else if (key.toUpperCase() === "HOME") {
         interpretedI = {
@@ -229,15 +232,30 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
         LONGITUDE:0,
         ALTITUDE:0
       };
+      let latSkips = 0;
+      let lonSkips = 0;
+      let altSkips = 0;
       for (let j=start; j<end; j++) {
         let k = Math.max(Math.min(j,arr.length-1),0);
-        sums.LATITUDE += arr[k].GPS.LATITUDE;
-        sums.LONGITUDE += arr[k].GPS.LONGITUDE;
-        sums.ALTITUDE += arr[k].GPS.ALTITUDE;
+        if (isNum(arr[k].GPS.LATITUDE)) {
+          sums.LATITUDE += arr[k].GPS.LATITUDE
+        } else {
+          latSkips++;
+        };
+        if (isNum(arr[k].GPS.LONGITUDE)) {
+          sums.LONGITUDE += arr[k].GPS.LONGITUDE;
+        } else {
+          lonSkips++;
+        }
+        if (isNum(arr[k].GPS.ALTITUDE)) {
+          sums.ALTITUDE += arr[k].GPS.ALTITUDE;
+        } else {
+          altSkips++;
+        }
       }
-      smoothArr[i].GPS.LATITUDE = sums.LATITUDE/(amount*2);
-      smoothArr[i].GPS.LONGITUDE = sums.LONGITUDE/(amount*2);
-      smoothArr[i].GPS.ALTITUDE = sums.ALTITUDE/(amount*2);
+      smoothArr[i].GPS.LATITUDE = sums.LATITUDE/(amount*2-latSkips);
+      smoothArr[i].GPS.LONGITUDE = sums.LONGITUDE/(amount*2-lonSkips);
+      smoothArr[i].GPS.ALTITUDE = sums.ALTITUDE/(amount*2-altSkips);
     }
     return smoothArr;
   }
@@ -448,6 +466,10 @@ DJI_SRT_Parser.prototype.flow = function(data,preparedData) {
 function notReady() {
   console.log("Data not ready");
   return null;
+}
+
+function isNum(val) {
+  return /^[-\+\d.,]+$/.test(val);
 }
 
 function toExport(context,file,fileName,preparedData) {

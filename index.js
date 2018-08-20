@@ -260,6 +260,20 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
     return smoothArr;
   }
   let newArr = arr.map(pck => interpretPacket(pck));
+  for (let i = 1; i<newArr.length; i++) {//loop back and forth to fill missing gps data with neighbours
+    if (newArr[i].GPS) {
+      if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i].GPS.LATITUDE = newArr[i-1].GPS.LATITUDE;
+      if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i].GPS.LONGITUDE = newArr[i-1].GPS.LONGITUDE;
+      if (newArr[i].GPS.ALTITUDE && !isNum(newArr[i].GPS.ALTITUDE)) ewArr[i].GPS.ALTITUDE = newArr[i-1].GPS.ALTITUDE;
+    }
+  }
+  for (let i = newArr.length-2; i>=0; i--) {
+    if (newArr[i].GPS) {
+      if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i+1].GPS.LATITUDE;
+      if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i+1].GPS.LONGITUDE;
+      if (newArr[i].GPS.ALTITUDE != null && !isNum(newArr[i].GPS.ALTITUDE)) newArr[i+1].GPS.ALTITUDE;
+    }
+  }
   let smoothing = smooth != undefined ? smooth : 4;
   smoothing = smoothing >= 0 ? smoothing : 0;
   if (newArr[0].GPS) {

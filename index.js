@@ -185,6 +185,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
         interpretedI = eval(datum);
       } else if (key.toUpperCase() === "SHUTTER") {
         interpretedI = Number(datum.replace("1/", ""));
+      } else if (key.toUpperCase() === "FNUM" && Number(datum) > 50) { //convert f numbers represented like 280
+        interpretedI = Number(datum) / 100;
       } else {
         interpretedI = Number(datum.replace(/[a-zA-Z]/g, ""));
       }
@@ -210,6 +212,21 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
               replaceKey(pckt,match,key);
             }
           });
+        }
+      }
+      let latitude = pckt["LATITUDE"];  //Mavic 2 style
+      let longitude = pckt["LONGITUDE"] || pckt["LONGTITUDE"];
+      let altitude = pckt["ALTITUDE"] || pckt["BAROMETER"];
+      if (latitude != undefined && longitude != undefined ) {
+        let longitude = pckt["LONGITUDE"] || pckt["LONGTITUDE"];
+        pckt.GPS = {
+          LONGITUDE:longitude,
+          LATITUDE:latitude
+        }
+        if (altitude != undefined ) {
+          pckt.GPS.ALTITUDE = altitude;
+        } else {
+          pckt.GPS.ALTITUDE = 0;
         }
       }
       return pckt;

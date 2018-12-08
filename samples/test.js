@@ -35,7 +35,7 @@ function preload(file,cb) {
   }
 }
 
-let files = ["mavic_pro","mavic_air","old_format","mavic_pro_buggy"];
+let files = ["mavic_pro","mavic_air","old_format","mavic_pro_buggy","mavic_2_style"];
 let DJISRTParser = require("../index");
 let i = 0;
 preload(files[i]+".SRT",confirm);

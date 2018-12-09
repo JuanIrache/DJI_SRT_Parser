@@ -13,6 +13,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {//convert SRT strings file
   const arrayRegEx = /\b([A-Za-z]+)\(([-\+\w.,/]+)\)/g;
   const valueRegEx = /\b([A-Za-z]+)\s?:[\s\[a-zA-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
   const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}/;
+  const accurateDateRegex = /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
   srt = srt.split(/[\n\r]/);
 
   srt.forEach(line => {
@@ -28,7 +29,9 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {//convert SRT strings file
       while (match = valueRegEx.exec(line)) {
         converted[converted.length-1][match[1]] = match[2];
       }
-      if (match = dateRegEx.exec(line)) {
+      if (match = accurateDateRegex.exec(line)) {
+        converted[converted.length-1].DATE = match[1]+":"+match[2]+"."+match[3];
+      } else if (match = dateRegEx.exec(line)) {
         converted[converted.length-1].DATE = match[0];
       }
     }
@@ -74,8 +77,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
         let distanceVert = getElevation(pck) - getElevation(cmp[i-1]);
         distanceVert /= 1000;
         let distance3D = Math.hypot(distance2D,distanceVert);
-        let time = (new Date(pck.DATE)-new Date(cmp[i-1].DATE))/1000.0;//seconds
-        time = time < 1 ? 1 : time;//make sure we are not dividing by zero, not sure why sometimes two packets have the same timestamp
+        let time = (new Date(pck.DATE).getTime()-new Date(cmp[i-1].DATE).getTime())/1000.0;//seconds
+        time = time == 0 ? 1 : time;//make sure we are not dividing by zero, not sure why sometimes two packets have the same timestamp
         time /= 60*60;
         accDistance += distance3D*1000;
         result.DISTANCE = accDistance;
@@ -179,7 +182,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr,smooth) {
       } else if (key.toUpperCase() === "DATE") {
         const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{3})?Z/;
         let date = datum;
-        if (!isoDateRegex.exec(datum)) date = datum.replace(/\./g,"-").replace(" ","T").replace(/-([0-9](\b|[a-zA-Z]))/g,"-0$1");
+        if (!isoDateRegex.exec(datum)) date = datum.replace(/\./g,"-").replace(" ","T").replace(/-([0-9](\b|[a-zA-Z]))/g,"-0$1").replace(/:(\w{3})-(\w{3})$/g,".$1");
         interpretedI = new Date(date).getTime();
       } else if (key.toUpperCase() === "EV") {
         interpretedI = eval(datum);

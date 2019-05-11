@@ -4,7 +4,7 @@
   "description": "Parses and interprets DJI's drones SRT metadata",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -35,5 +35,8 @@
     "url": "https://github.com/JuanIrache/DJI_SRT_Parser/issues"
   },
   "homepage": "https://github.com/JuanIrache/DJI_SRT_Parser#readme",
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^24.8.0"
+  }
 }

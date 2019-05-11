@@ -9,23 +9,25 @@ Please let me know if you create something with this :).
 ## Installation
 
 Using npm:
+
 ```shell
 $ npm install dji_srt_parser
 ```
 
 ## Usage
+
 ```js
 //Load module
 let DJISRTParser = require('dji_srt_parser');
 
 //Specify data source name
-let fileName = "filePath";
+let fileName = 'filePath';
 
 //And load the data in a string (with your preferred method)
 let dataString = readTextFile(fileName);
 
 //You can create multiple instances, one for reading each SRT file. Specify data as a string and filename for future reference
-let DJIData = DJISRTParser(dataString,fileName);
+let DJIData = DJISRTParser(dataString, fileName);
 
 //toGeoJSON() exports the current interpretation of data to a CSV spreadsheet format. The optional value raw exports the raw data instead. You can then use tokml or togpx modules to convert to those formats
 let geoJSON = DJIData.toGeoJSON();
@@ -44,8 +46,8 @@ console.log(DJIData.setSmoothing(0));
 console.log(DJIData.getFileName());
 //toCSV() exports the current interpretation of data to the GeoJSON format. The optional value raw exports the raw data instead
 let csvData = DJIData.toCSV();
-//Now you can also load a GeoJSON (or JSON) file directly into the rawMetadata field. This can be useful if you want to import data from other sources into the syste,
-let DJIData = DJISRTParser(JSONDataString,JSONfileName,true);
+//Now you can also load a GeoJSON (or JSON) file directly into the rawMetadata field. This can be useful if you want to import data from other sources into the system,
+let DJIData = DJISRTParser(JSONDataString, JSONfileName, true);
 //These data must follow the same structure as rawMetadata() usually has:
 // {
 //   "TIMECODE":"00:00:01,000",
@@ -64,13 +66,14 @@ let DJIData = DJISRTParser(JSONDataString,JSONfileName,true);
 //   "Shutter":"60",
 //   "Fnum":"2.2"
 // }
-
-
 ```
+
 Smoothing is applied when interpreting the data because the GPS values provided by DJI are not accurate enough. They don't have enough digits. We average them with the surrounding values to create more pleasant paths and to be able to compute somewhat meaningful speeds. The interpreted values are not necessarily more accurate.
 
 ## Units of interpreted data
+
 (As far as we know)
+
 - Timecode: HH:MM:SS,FFF
 - GPS: degrees (and meters for third value, altitude)
 - Date: timestamp in milliseconds (note that the time zone is not specified, could be local where the drone was registered, or flown...)
@@ -81,4 +84,5 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 - ISO, shutter and EV (not always present)
 
 ## TODO
-- Fix date in KML and JSON
+
+- Simplify example

@@ -520,7 +520,7 @@ DJI_SRT_Parser.prototype.loadFile = function(data, fileName, preparedData) {
 
 DJI_SRT_Parser.prototype.flow = function(data, preparedData) {
   if (preparedData) {
-    this.rawMetadata = JSON.parse(data);
+    this.rawMetadata = JSON.parse(preparedData);
   } else {
     this.rawMetadata = this.srtToObject(data);
   }

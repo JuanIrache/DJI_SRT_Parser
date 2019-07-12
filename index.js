@@ -99,7 +99,18 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         let distanceVert = getElevation(pck) - getElevation(cmp[i - 1]);
         distanceVert /= 1000;
         let distance3D = Math.hypot(distance2D, distanceVert);
-        let time = (new Date(pck.DATE).getTime() - new Date(cmp[i - 1].DATE).getTime()) / 1000.0; //seconds
+        let time = 1; //Fallback time, 1 second
+        if (pck.DATE) {
+          time = (new Date(pck.DATE).getTime() - new Date(cmp[i - 1].DATE).getTime()) / 1000.0; //seconds
+        } else if (pck.TIMECODE) {
+          const parseTC = /(\d\d):(\d\d):(\d\d),(\d{3})/;
+          let match = pck.TIMECODE.match(parseTC);
+          const useDate = new Date(0, 0, 0, match[1], match[2], match[3], match[4]);
+          match = cmp[i - 1].TIMECODE.match(parseTC);
+          const prevDate = new Date(0, 0, 0, match[1], match[2], match[3], match[4]);
+          time = (new Date(useDate).getTime() - new Date(prevDate).getTime()) / 1000.0; //seconds
+        }
+
         time = time == 0 ? 1 : time; //make sure we are not dividing by zero, not sure why sometimes two packets have the same timestamp
         time /= 60 * 60;
         accDistance += distance3D * 1000;
@@ -180,7 +191,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
     } else if (arr[arr.length - 1].DATE != undefined) {
       result.DURATION = new Date(arr[arr.length - 1].DATE) - new Date(arr[0].DATE); //duration of video in milliseconds
     }
-    if (arr[arr.length - 1].DISTANCE) {
+    if (arr[arr.length - 1].DISTANCE != null) {
       result.DISTANCE = arr[arr.length - 1].DISTANCE; //dsitance of flight in meters
     }
     return result;

@@ -4,7 +4,6 @@ function preload(file, cb) {
   let loadFileBrowser = function(file) {
     let readTextFile = function(file, f) {
       let rawFile = new XMLHttpRequest();
-      let allText;
       rawFile.open('GET', file, true);
       rawFile.onreadystatechange = function() {
         if (rawFile.readyState === 4) {
@@ -35,7 +34,7 @@ function preload(file, cb) {
   }
 }
 
-let files = ['mavic_pro', 'mavic_air', 'old_format', 'mavic_pro_buggy', 'mavic_2_style'];
+let files = ['mavic_pro', 'mavic_air', 'old_format', 'mavic_pro_buggy', 'mavic_2_style', 'p4p_sample'];
 let DJISRTParser = require('../index');
 let i = 0;
 preload(files[i] + '.SRT', confirm);
@@ -58,6 +57,7 @@ function confirm(data) {
       console.log('\x1b[31m%s\x1b[0m', 'Speed data missing');
     }
     let elevation;
+
     if (DJIfile.metadata().stats.BAROMETER) {
       elevation = DJIfile.metadata().stats.BAROMETER.max;
     } else if (DJIfile.metadata().stats.HB) {

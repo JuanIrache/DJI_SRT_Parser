@@ -4,7 +4,6 @@ function preload(file, cb) {
   let loadFileBrowser = function(file) {
     let readTextFile = function(file, f) {
       let rawFile = new XMLHttpRequest();
-      let allText;
       rawFile.open('GET', file, true);
       rawFile.onreadystatechange = function() {
         if (rawFile.readyState === 4) {

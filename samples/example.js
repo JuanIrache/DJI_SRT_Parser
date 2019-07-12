@@ -57,6 +57,7 @@ function confirm(data) {
       console.log('\x1b[31m%s\x1b[0m', 'Speed data missing');
     }
     let elevation;
+
     if (DJIfile.metadata().stats.BAROMETER) {
       elevation = DJIfile.metadata().stats.BAROMETER.max;
     } else if (DJIfile.metadata().stats.HB) {

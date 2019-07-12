@@ -11,11 +11,28 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
   let converted = [];
   const timecodeRegEx = /(\d{2}:\d{2}:\d{2},\d{3})\s-->\s/;
   const packetRegEx = /^\d+$/;
-  const arrayRegEx = /\b([A-Za-z]+)\(([-\+\w.,/]+)\)/g;
-  const valueRegEx = /\b([A-Za-z]+)\s?:[\s\[a-zA-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
+  const arrayRegEx = /\b([A-Z_a-z]+)\(([-\+\w.,/]+)\)/g;
+  const valueRegEx = /\b([A-Z_a-z]+)\s?:[\s\[a-z_A-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
   const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}/;
   const accurateDateRegex = /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
-  srt = srt.split(/[\n\r]/);
+  //Split difficult Phantom4Pro format
+  srt = srt
+    .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))
+    .replace(/\(.*\)/g, match => match.replace(/,/g, ':separator:').replace(/\s/g, ''))
+    .replace(/,/g, '')
+    .replace(/\:separator\:/g, ',');
+  //Split others
+  srt = srt
+    .split(/[\n\r]/)
+    .map(l => l.trim())
+    .map(l =>
+      l
+        .replace(/([a-zA-Z])\s(\d)/g, '$1:$2')
+        .replace(/([a-zA-Z])\s\(/g, '$1(')
+        .replace(/([a-zA-Z])\.([a-zA-Z])/g, '$1_$2')
+        .replace(/([a-zA-Z])\/(\d)/g, '$1:$2')
+    )
+    .filter(l => l.length);
 
   srt.forEach(line => {
     let match;
@@ -42,6 +59,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
     console.log('Error converting object');
     return null;
   }
+
   return converted;
 };
 
@@ -216,8 +234,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       };
       let references = {
         //translate keys form various formats
-        SHUTTER: ['TV'],
-        FNUM: ['IR']
+        SHUTTER: ['TV', 'SS'],
+        FNUM: ['IR', 'F']
       };
       for (let key in references) {
         if (pckt[key] == undefined) {

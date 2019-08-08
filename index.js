@@ -119,14 +119,18 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         accDistance += distance3D * 1000;
         result.DISTANCE = accDistance;
 
+        //If preset speeds set, copy them
         if (result.SPEED_TWOD) result.SPEED.TWOD = result.SPEED_TWOD;
         else result.SPEED.TWOD = distance2D / time;
+        delete result.SPEED_TWOD;
 
         if (result.SPEED_VERTICAL) result.SPEED.VERTICAL = result.SPEED_VERTICAL;
         else result.SPEED.VERTICAL = distanceVert / time;
+        delete result.SPEED_VERTICAL;
 
         if (result.SPEED_THREED) result.SPEED.THREED = result.SPEED_THREED;
         else result.SPEED.THREED = distance3D / time;
+        delete result.SPEED_THREED;
       }
       return result;
     });

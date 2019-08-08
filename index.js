@@ -77,7 +77,10 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       var dLon = (lon2 * Math.PI) / 180 - (lon1 * Math.PI) / 180;
       var a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        Math.cos((lat1 * Math.PI) / 180) *
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
       var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       var d = R * c;
       return d * 1000; // meters
@@ -115,9 +118,15 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         time /= 60 * 60;
         accDistance += distance3D * 1000;
         result.DISTANCE = accDistance;
-        result.SPEED.TWOD = distance2D / time;
-        result.SPEED.VERTICAL = distanceVert / time;
-        result.SPEED.THREED = distance3D / time;
+
+        if (result.SPEED_TWOD) result.SPEED.TWOD = result.SPEED_TWOD;
+        else result.SPEED.TWOD = distance2D / time;
+
+        if (result.SPEED_VERTICAL) result.SPEED.VERTICAL = result.SPEED_VERTICAL;
+        else result.SPEED.VERTICAL = distanceVert / time;
+
+        if (result.SPEED_THREED) result.SPEED.THREED = result.SPEED_THREED;
+        else result.SPEED.THREED = distance3D / time;
       }
       return result;
     });
@@ -176,9 +185,16 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         } else if (typeof select[0] === 'object' && select[0] != null) {
           recursiveStatsExtraction(result[elt], select);
         } else {
-          result[elt].min = select.reduce((acc, val) => (val < acc && isNum(val) ? val : acc), Infinity);
-          result[elt].max = select.reduce((acc, val) => (val > acc && isNum(val) ? val : acc), -Infinity);
-          result[elt].avg = select.reduce((acc, val) => (isNum(val) ? acc + val : acc), 0) / select.length;
+          result[elt].min = select.reduce(
+            (acc, val) => (val < acc && isNum(val) ? val : acc),
+            Infinity
+          );
+          result[elt].max = select.reduce(
+            (acc, val) => (val > acc && isNum(val) ? val : acc),
+            -Infinity
+          );
+          result[elt].avg =
+            select.reduce((acc, val) => (isNum(val) ? acc + val : acc), 0) / select.length;
         }
       }
       return result;
@@ -233,7 +249,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       } else {
         interpretedI = Number(datum.replace(/[a-zA-Z]/g, ''));
       }
-      if (interpretedI.constructor === Object && Object.keys(interpretedI).length === 0) return null;
+      if (interpretedI.constructor === Object && Object.keys(interpretedI).length === 0)
+        return null;
       return interpretedI;
     };
     let fillMissingFields = function(pckt) {
@@ -326,14 +343,16 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
     if (newArr[i].GPS) {
       if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
       if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.ALTITUDE && !isNum(newArr[i].GPS.ALTITUDE)) ewArr[i].GPS.ALTITUDE = newArr[i - 1].GPS.ALTITUDE;
+      if (newArr[i].GPS.ALTITUDE && !isNum(newArr[i].GPS.ALTITUDE))
+        ewArr[i].GPS.ALTITUDE = newArr[i - 1].GPS.ALTITUDE;
     }
   }
   for (let i = newArr.length - 2; i >= 0; i--) {
     if (newArr[i].GPS) {
       if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i + 1].GPS.LATITUDE;
       if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i + 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.ALTITUDE != null && !isNum(newArr[i].GPS.ALTITUDE)) newArr[i + 1].GPS.ALTITUDE;
+      if (newArr[i].GPS.ALTITUDE != null && !isNum(newArr[i].GPS.ALTITUDE))
+        newArr[i + 1].GPS.ALTITUDE;
     }
   }
   let smoothing = smooth != undefined ? smooth : 4;

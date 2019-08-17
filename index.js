@@ -501,6 +501,12 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
   }
   let GeoJSONContent = {
     type: 'FeatureCollection',
+    crs: { 
+      type: 'name',
+      properties: { 
+        name: 'urn:ogc:def:crs:OGC:1.3:CRS84' 
+      }
+    },
     features: []
   };
   let array = raw ? this.rawMetadata : this.metadata.packets;

@@ -64,6 +64,10 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
 };
 
 DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
+  
+  // removing imported empty lines in the array, something frequent at the end of the DJI´s SRTs
+  arr = arr.filter(value => Object.keys(value).length !== 0); 
+  
   let computeSpeed = function(arr) {
     //computes 3 types of speed in km/h
     let computed = JSON.parse(JSON.stringify(arr));

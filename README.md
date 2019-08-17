@@ -82,3 +82,8 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 - Duration: milliseconds
 - Distance: meters
 - ISO, shutter and EV (not always present)
+
+## Acknowledgements/credits
+
+- [Juan Irache](https://github.com/JuanIrache) - Main developer
+- [Gastón](https://github.com/tatoz12) - Contributor

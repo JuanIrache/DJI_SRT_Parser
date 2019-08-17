@@ -64,6 +64,10 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
 };
 
 DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
+  
+  // removing imported empty lines in the array, something frequent at the end of the DJI´s SRTs
+  arr = arr.filter(value => Object.keys(value).length !== 0); 
+  
   let computeSpeed = function(arr) {
     //computes 3 types of speed in km/h
     let computed = JSON.parse(JSON.stringify(arr));
@@ -124,11 +128,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         else result.SPEED.TWOD = distance2D / time;
         delete result.SPEED_TWOD;
 
-        // console.log(result.SPEED_VERTICAL);
         if (result.SPEED_VERTICAL != null) result.SPEED.VERTICAL = result.SPEED_VERTICAL;
         else result.SPEED.VERTICAL = distanceVert / time;
         delete result.SPEED_VERTICAL;
-        // console.log(result.SPEED.VERTICAL);
 
         if (result.SPEED_THREED != null) result.SPEED.THREED = result.SPEED_THREED;
         else result.SPEED.THREED = distance3D / time;
@@ -499,6 +501,12 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
   }
   let GeoJSONContent = {
     type: 'FeatureCollection',
+    crs: { 
+      type: 'name',
+      properties: { 
+        name: 'urn:ogc:def:crs:OGC:1.3:CRS84' 
+      }
+    },
     features: []
   };
   let array = raw ? this.rawMetadata : this.metadata.packets;

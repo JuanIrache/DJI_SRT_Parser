@@ -20,6 +20,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
     .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))
     .replace(/\(.*\)/g, match => match.replace(/,/g, ':separator:').replace(/\s/g, ''))
     .replace(/,/g, '')
+    .replace(/Â|°|(B0)/g, '') // For P4RTK: parasite characters emerged after imported using "express-fileupload" and the actual "readfile" function.
     .replace(/\:separator\:/g, ',');
   //Split others
   srt = srt
@@ -229,6 +230,18 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
           LATITUDE: isNum(datum[1]) ? Number(datum[1]) : 'n/a',
           LONGITUDE: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
           ALTITUDE: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
+        };
+      } else if (key.toUpperCase() === 'F_PRY') { 
+        interpretedI = {
+          1: isNum(datum[1]) ? Number(datum[1]) : 'n/a', // For now, I don't know what the data means
+          2: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
+          3: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
+        };
+      } else if (key.toUpperCase() === 'G_PRY') {
+        interpretedI = {
+          1: isNum(datum[1]) ? Number(datum[1]) : 'n/a',
+          2: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
+          3: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
         };
       } else if (key.toUpperCase() === 'HOME') {
         interpretedI = {

@@ -86,4 +86,4 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 ## Acknowledgements/credits
 
 - [Juan Irache](https://github.com/JuanIrache) - Main developer
-- [Gastón](https://github.com/tatoz12) - Contributor
+- [Gastón Zalba](https://github.com/tatoz12) - Contributor

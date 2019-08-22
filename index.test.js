@@ -113,3 +113,19 @@ test('The max altitude should be readable from the ALTITUDE field', () => {
 test('We should be able to read the aperture in the p4p format', () => {
   expect(p4p.metadata().packets[0].FNUM).toBe(3.2);
 });
+
+//p4rtk attempt
+data = preload(`./samples/p4_rtk.SRT`);
+let p4rtk = DJISRTParser(data, 'p4_rtk.SRT');
+test('p4 RTK Format result should contain metadata', () => {
+  expect(p4rtk.metadata()).toBeDefined();
+});
+test('The max altitude should be readable from the ALTITUDE field', () => {
+  expect(p4rtk.metadata().stats.GPS.ALTITUDE.max).toBe(14.875);
+});
+test('We should be able to read the aperture in the p4p format', () => {
+  expect(p4rtk.metadata().packets[0].FNUM).toBe(5.6);
+});
+test('We should be able to read the aperture in the p4p format', () => {
+  expect(p4rtk.metadata().packets[0].G_PRY).toBeDefined();
+});

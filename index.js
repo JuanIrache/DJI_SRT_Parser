@@ -18,7 +18,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
   //Split difficult Phantom4Pro format
   srt = srt
     .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))
-    .replace(/\(.*\)/g, match => match.replace(/,/g, ':separator:').replace(/\s/g, ''))
+    .replace(/\(([^\)]+)\)/g, match => match.replace(/,/g, ':separator:').replace(/\s/g, ''))
     .replace(/,/g, '')
     .replace(/Â|°|(B0)/g, '') // For P4RTK: parasite characters emerged after imported using "express-fileupload" and the actual "readfile" function.
     .replace(/\:separator\:/g, ',');
@@ -284,7 +284,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       let references = {
         //translate keys form various formats
         SHUTTER: ['TV', 'SS'],
-        FNUM: ['IR', 'F']
+        FNUM: ['IR', 'F'],
+        BAROMETER: ['BAROMETER', 'H']
       };
       for (let key in references) {
         if (pckt[key] == undefined) {

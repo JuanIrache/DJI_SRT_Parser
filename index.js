@@ -1,3 +1,5 @@
+const toMGJSON = require('./modules/toMGJSON');
+
 function DJI_SRT_Parser() {
   this.fileName = '';
   this.metadata = {};
@@ -65,10 +67,9 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
 };
 
 DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
-  
   // Forcing srt to have one information line plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
-  arr = arr.filter(value => Object.keys(value).length > 1); 
-  
+  arr = arr.filter(value => Object.keys(value).length > 1);
+
   let computeSpeed = function(arr) {
     //computes 3 types of speed in km/h
     let computed = JSON.parse(JSON.stringify(arr));
@@ -231,7 +232,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
           LONGITUDE: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
           ALTITUDE: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
         };
-      } else if (key.toUpperCase() === 'F_PRY') { 
+      } else if (key.toUpperCase() === 'F_PRY') {
         interpretedI = {
           1: isNum(datum[1]) ? Number(datum[1]) : 'n/a', // For now, I don't know what the data means
           2: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
@@ -444,6 +445,11 @@ DJI_SRT_Parser.prototype.createCSV = function(raw) {
   return csvContent;
 };
 
+DJI_SRT_Parser.prototype.createMGJSON = function(name = '') {
+  const mgJSONContent = toMGJSON(this.metadata.packets, name);
+  return mgJSONContent;
+};
+
 DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
   function GeoJSONExtract(obj, raw) {
     let extractProps = function(childObj, pre) {
@@ -515,10 +521,10 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
   }
   let GeoJSONContent = {
     type: 'FeatureCollection',
-    crs: { 
+    crs: {
       type: 'name',
-      properties: { 
-        name: 'urn:ogc:def:crs:OGC:1.3:CRS84' 
+      properties: {
+        name: 'urn:ogc:def:crs:OGC:1.3:CRS84'
       }
     },
     features: []
@@ -635,6 +641,9 @@ function toExport(context, file, fileName, preparedData) {
     },
     toCSV: function(raw) {
       return context.loaded ? context.createCSV(raw) : notReady();
+    },
+    toMGJSON: function() {
+      return context.loaded ? context.createMGJSON(context.fileName) : notReady();
     },
     toGeoJSON: function(raw) {
       return context.loaded ? context.createGeoJSON(raw) : notReady();

@@ -41,9 +41,9 @@ function createDynamicDataOutline(matchName, displayName, units, type) {
     matchName
   };
 
+  if (units) result.displayName += ` [${units}]`;
   if (type === 'numberString') {
     //Number saved as string (After Effects reasons)
-    if (units) result.displayName += ` [${units}]`;
     //Add fourCC to help AE identify streams
     result.dataType.numberStringProperties = {
       pattern: {
@@ -83,7 +83,7 @@ function createDynamicDataOutline(matchName, displayName, units, type) {
     };
   } else if (type === 'paddedString') {
     //Any other value is expressed as string
-    if (units) result.displayName += `[${units}]`;
+
     //Add fourCC to help AE identify streams
     result.dataType.paddedStringProperties = {
       maxLen: 0,

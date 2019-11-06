@@ -26,6 +26,20 @@ function createDataOutlineChildText(matchName, displayName, value) {
   };
 }
 
+//Choose best value for altitude
+function chooseAlt(pckt) {
+  if (pckt.BAROMETER != undefined) {
+    return pckt.BAROMETER;
+  } else if (pckt.HB != undefined) {
+    return pckt.HB;
+  } else if (pckt.HS != undefined) {
+    return pckt.HS;
+  } else if (pckt.GPS != undefined && pckt.GPS.ALTITUDE) {
+    return pckt.GPS.ALTITUDE;
+  }
+  return 0;
+}
+
 //Build the style that After Effects needs for dynamic values: numbers, arrays of numbers (axes) or strings (date)
 function createDynamicDataOutline(matchName, displayName, units, type) {
   let result = {
@@ -144,7 +158,7 @@ function convertSamples(data) {
     //Loop all the samples
     data.forEach(s => {
       //aqui temporary
-      const value = [s.GPS.LATITUDE, s.GPS.LONGITUDE, s.BAROMETER];
+      const value = [s.GPS.LATITUDE, s.GPS.LONGITUDE, chooseAlt(s)];
       const setMaxMinPadNum = function(val, pattern, range) {
         //Update mins and maxes
         range.occuring.min = Math.min(val, range.occuring.min);

@@ -124,21 +124,14 @@ function convertSamples(data) {
   //Holds the streams
   let dataDynamicSamples = [];
 
-  //Start deducing streams here aqui
-
-  if (data && data.length) {
-    //Save the stream name for display
-    let streamName = 'GPS: (Lat.,Long.,Alt.)';
-    let units = ['deg', 'deg', 'm'];
-
+  //Start deducing streams here
+  function addOneStream({ streamName, units, sampleSetID, type, extract }) {
     //Prepare sample set
-    const sampleSetID = `streamGPS`;
     let sampleSet = {
       sampleSetID,
       samples: []
     };
 
-    const type = 'numberStringArray';
     //Create the stream structure
     let dataOutlineChild = createDynamicDataOutline(sampleSetID, streamName, units, type);
     //And find the type
@@ -157,10 +150,10 @@ function convertSamples(data) {
 
     //Loop all the samples
     data.forEach(s => {
-      //aqui temporary
-      const value = [s.GPS.LATITUDE, s.GPS.LONGITUDE, chooseAlt(s)];
+      //Extract wanted data
+      const value = extract(s);
+      //Update mins and maxes
       const setMaxMinPadNum = function(val, pattern, range) {
-        //Update mins and maxes
         range.occuring.min = Math.min(val, range.occuring.min);
         range.occuring.max = Math.max(val, range.occuring.max);
         //And max left and right padding
@@ -239,6 +232,72 @@ function convertSamples(data) {
     //Save stream
     dataOutline.push(dataOutlineChild);
     dataDynamicSamples.push(sampleSet);
+  }
+
+  if (data && data.length) {
+    addOneStream({
+      streamName: 'GPS: (Lat.,Long.,Alt.)',
+      units: ['deg', 'deg', 'm'],
+      sampleSetID: `streamGPS`,
+      type: 'numberStringArray',
+      extract: function(s) {
+        return [s.GPS.LATITUDE, s.GPS.LONGITUDE, chooseAlt(s)];
+      }
+    });
+    addOneStream({
+      streamName: 'SPEED: (2D,3D.)',
+      units: ['km/h', 'km/h'],
+      sampleSetID: `streamSPEED`,
+      type: 'numberStringArray',
+      extract: function(s) {
+        return [s.SPEED.TWOD, s.SPEED.THREED];
+      }
+    });
+    addOneStream({
+      streamName: 'DISTANCE:',
+      units: ['m'],
+      sampleSetID: `streamDISTANCE`,
+      type: 'numberString',
+      extract: function(s) {
+        return s.DISTANCE;
+      }
+    });
+    addOneStream({
+      streamName: 'ISO:',
+      units: null,
+      sampleSetID: `streamISO`,
+      type: 'numberString',
+      extract: function(s) {
+        return s.ISO;
+      }
+    });
+    addOneStream({
+      streamName: 'SHUTTER:',
+      units: null,
+      sampleSetID: `streamSHUTTER`,
+      type: 'numberString',
+      extract: function(s) {
+        return s.SHUTTER;
+      }
+    });
+    addOneStream({
+      streamName: 'FNUM:',
+      units: null,
+      sampleSetID: `streamFNUM`,
+      type: 'numberString',
+      extract: function(s) {
+        return s.FNUM;
+      }
+    });
+    addOneStream({
+      streamName: 'DATE:',
+      units: null,
+      sampleSetID: `streamDATE`,
+      type: 'paddedString',
+      extract: function(s) {
+        return new Date(s.DATE).toISOString();
+      }
+    });
   }
 
   return { dataOutline, dataDynamicSamples };

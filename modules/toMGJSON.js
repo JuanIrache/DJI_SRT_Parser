@@ -109,14 +109,6 @@ function createDynamicDataOutline(matchName, displayName, units, type) {
   return result;
 }
 
-//Deduce the kind of structure we need, from the data
-function getDataOutlineType(value) {
-  if (typeof value === 'number') return 'numberString';
-  else if (Array.isArray(value) && value.length && typeof value[0] === 'number')
-    return 'numberStringArray';
-  else return 'paddedString';
-}
-
 //Returns the data as parts of an mgjson object
 function convertSamples(data) {
   //Will hold the description of each stream

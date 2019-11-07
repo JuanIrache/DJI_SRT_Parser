@@ -44,8 +44,10 @@ console.log(DJIData.getSmoothing());
 console.log(DJIData.setSmoothing(0));
 //getFileName() returns the filename, useful if you loaded multiple files in multiple instances
 console.log(DJIData.getFileName());
-//toCSV() exports the current interpretation of data to the GeoJSON format. The optional value raw exports the raw data instead
+//toCSV() exports the current interpretation of data to CSV format. The optional value raw exports the raw data instead
 let csvData = DJIData.toCSV();
+//toMGJSON() exports the current interpretation of data to Adobe's mgJSON format for use in After Effects (see more info below).
+let mgjsonData = DJIData.toMGJSON();
 //Now you can also load a GeoJSON (or JSON) file directly into the rawMetadata field. This can be useful if you want to import data from other sources into the system,
 let DJIData = DJISRTParser(JSONDataString, JSONfileName, true);
 //These data must follow the same structure as rawMetadata() usually has:
@@ -82,6 +84,10 @@ Smoothing is applied when interpreting the data because the GPS values provided 
 - Duration: milliseconds
 - Distance: meters
 - ISO, shutter and EV (not always present)
+
+## How to use mgJSON files
+
+I gathered some information on the mgJSON format in this repo: [mgJSON](https://github.com/JuanIrache/mgjson)
 
 ## Contribution
 

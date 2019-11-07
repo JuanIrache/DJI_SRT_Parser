@@ -91,3 +91,7 @@ Please make your changes to the **dev** branch, so that automated tests can be r
 
 - [Juan Irache](https://github.com/JuanIrache) - Main developer
 - [Gastón Zalba](https://github.com/tatoz12) - Contributor
+
+## To-Do
+
+- Add tests for export formats

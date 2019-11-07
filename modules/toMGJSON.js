@@ -109,14 +109,6 @@ function createDynamicDataOutline(matchName, displayName, units, type) {
   return result;
 }
 
-//Deduce the kind of structure we need, from the data
-function getDataOutlineType(value) {
-  if (typeof value === 'number') return 'numberString';
-  else if (Array.isArray(value) && value.length && typeof value[0] === 'number')
-    return 'numberStringArray';
-  else return 'paddedString';
-}
-
 //Returns the data as parts of an mgjson object
 function convertSamples(data) {
   //Will hold the description of each stream
@@ -127,117 +119,120 @@ function convertSamples(data) {
   //Start deducing streams here
   function addOneStream({ streamName, units, sampleSetID, type, extract }) {
     try {
-      //Prepare sample set
-      let sampleSet = {
-        sampleSetID,
-        samples: []
-      };
+      if (data && data.length && extract(data[0]) != null) {
+        //Prepare sample set
+        let sampleSet = {
+          sampleSetID,
+          samples: []
+        };
 
-      //Create the stream structure
-      let dataOutlineChild = createDynamicDataOutline(sampleSetID, streamName, units, type);
-      //And find the type
+        //Create the stream structure
+        let dataOutlineChild = createDynamicDataOutline(sampleSetID, streamName, units, type);
+        //And find the type
 
-      const setMaxMinPadStr = function(val, outline) {
-        //Set found max lengths
-        outline.dataType.paddedStringProperties.maxLen = Math.max(
-          val.toString().length,
-          outline.dataType.paddedStringProperties.maxLen
-        );
-        outline.dataType.paddedStringProperties.maxDigitsInStrLength = Math.max(
-          val.length.toString().length,
-          outline.dataType.paddedStringProperties.maxDigitsInStrLength
-        );
-      };
-
-      //Loop all the samples
-      data.forEach(s => {
-        //Extract wanted data
-        const value = extract(s);
-        //Update mins and maxes
-        const setMaxMinPadNum = function(val, pattern, range) {
-          range.occuring.min = Math.min(val, range.occuring.min);
-          range.occuring.max = Math.max(val, range.occuring.max);
-          //And max left and right padding
-          pattern.digitsInteger = Math.max(bigStr(Math.floor(val)).length, pattern.digitsInteger);
-          pattern.digitsDecimal = Math.max(
-            bigStr(val).replace(/^\d*\.?/, '').length,
-            pattern.digitsDecimal
+        const setMaxMinPadStr = function(val, outline) {
+          //Set found max lengths
+          outline.dataType.paddedStringProperties.maxLen = Math.max(
+            val.toString().length,
+            outline.dataType.paddedStringProperties.maxLen
+          );
+          outline.dataType.paddedStringProperties.maxDigitsInStrLength = Math.max(
+            val.length.toString().length,
+            outline.dataType.paddedStringProperties.maxDigitsInStrLength
           );
         };
 
-        //Back to data samples. Check that at least we have the valid values
-        if (value != null) {
-          let sample = { time: new Date(s.DATE) };
+        //Loop all the samples
+        data.forEach(s => {
+          //Extract wanted data
+          const value = extract(s);
+          //Update mins and maxes
+          const setMaxMinPadNum = function(val, pattern, range) {
+            range.occuring.min = Math.min(val, range.occuring.min);
+            range.occuring.max = Math.max(val, range.occuring.max);
+            //And max left and right padding
+            pattern.digitsInteger = Math.max(bigStr(Math.floor(val)).length, pattern.digitsInteger);
+            pattern.digitsDecimal = Math.max(
+              bigStr(val).replace(/^\d*\.?/, '').length,
+              pattern.digitsDecimal
+            );
+          };
+
+          //Back to data samples. Check that at least we have the valid values
+          if (value != null) {
+            let sample = { time: new Date(s.DATE) };
+            if (type === 'numberString') {
+              //Save numbers as strings
+              sample.value = bigStr(value);
+              //Update mins, maxes and padding
+              setMaxMinPadNum(
+                value,
+                dataOutlineChild.dataType.numberStringProperties.pattern,
+                dataOutlineChild.dataType.numberStringProperties.range
+              );
+            } else if (type === 'numberStringArray') {
+              //Save arrays of numbers as arrays of strings
+              sample.value = [];
+              value.forEach((v, i) => {
+                sample.value[i] = bigStr(v);
+                //And update, mins, maxs and paddings
+                setMaxMinPadNum(
+                  v,
+                  dataOutlineChild.dataType.numberArrayProperties.pattern,
+                  dataOutlineChild.dataType.numberArrayProperties.arrayRanges.ranges[i]
+                );
+              });
+            } else if (type === 'paddedString') {
+              //Save anything else as (padded)string
+              sample.value = { length: value.length.toString(), str: value };
+              setMaxMinPadStr(value, dataOutlineChild);
+            }
+            //Save sample
+            sampleSet.samples.push(sample);
+          }
+        });
+
+        sampleSet.samples.forEach(s => {
           if (type === 'numberString') {
-            //Save numbers as strings
-            sample.value = bigStr(value);
-            //Update mins, maxes and padding
-            setMaxMinPadNum(
-              value,
-              dataOutlineChild.dataType.numberStringProperties.pattern,
-              dataOutlineChild.dataType.numberStringProperties.range
+            //Apply max padding to every sample
+            s.value = padStringNumber(
+              s.value,
+              dataOutlineChild.dataType.numberStringProperties.pattern.digitsInteger,
+              dataOutlineChild.dataType.numberStringProperties.pattern.digitsDecimal
             );
           } else if (type === 'numberStringArray') {
-            //Save arrays of numbers as arrays of strings
-            sample.value = [];
-            value.forEach((v, i) => {
-              sample.value[i] = bigStr(v);
-              //And update, mins, maxs and paddings
-              setMaxMinPadNum(
+            //Apply max padding to every sample
+            s.value = s.value.map(v =>
+              padStringNumber(
                 v,
-                dataOutlineChild.dataType.numberArrayProperties.pattern,
-                dataOutlineChild.dataType.numberArrayProperties.arrayRanges.ranges[i]
-              );
-            });
+                dataOutlineChild.dataType.numberArrayProperties.pattern.digitsInteger,
+                dataOutlineChild.dataType.numberArrayProperties.pattern.digitsDecimal
+              )
+            );
           } else if (type === 'paddedString') {
-            //Save anything else as (padded)string
-            sample.value = { length: value.length.toString(), str: value };
-            setMaxMinPadStr(value, dataOutlineChild);
+            //Apply max padding to every sample
+            s.value.str = s.value.str.padEnd(
+              dataOutlineChild.dataType.paddedStringProperties.maxLen,
+              ' '
+            );
+            s.value.length = s.value.length.padStart(
+              dataOutlineChild.dataType.paddedStringProperties.maxDigitsInStrLength,
+              '0'
+            );
           }
-          //Save sample
-          sampleSet.samples.push(sample);
-        }
-      });
-
-      sampleSet.samples.forEach(s => {
-        if (type === 'numberString') {
-          //Apply max padding to every sample
-          s.value = padStringNumber(
-            s.value,
-            dataOutlineChild.dataType.numberStringProperties.pattern.digitsInteger,
-            dataOutlineChild.dataType.numberStringProperties.pattern.digitsDecimal
-          );
-        } else if (type === 'numberStringArray') {
-          //Apply max padding to every sample
-          s.value = s.value.map(v =>
-            padStringNumber(
-              v,
-              dataOutlineChild.dataType.numberArrayProperties.pattern.digitsInteger,
-              dataOutlineChild.dataType.numberArrayProperties.pattern.digitsDecimal
-            )
-          );
-        } else if (type === 'paddedString') {
-          //Apply max padding to every sample
-          s.value.str = s.value.str.padEnd(
-            dataOutlineChild.dataType.paddedStringProperties.maxLen,
-            ' '
-          );
-          s.value.length = s.value.length.padStart(
-            dataOutlineChild.dataType.paddedStringProperties.maxDigitsInStrLength,
-            '0'
-          );
-        }
-      });
-      //Save total samples count
-      dataOutlineChild.sampleCount = sampleSet.samples.length;
-      //Save stream
-      dataOutline.push(dataOutlineChild);
-      dataDynamicSamples.push(sampleSet);
+        });
+        //Save total samples count
+        dataOutlineChild.sampleCount = sampleSet.samples.length;
+        //Save stream
+        dataOutline.push(dataOutlineChild);
+        dataDynamicSamples.push(sampleSet);
+      }
     } catch (error) {
       console.error(error);
     }
   }
 
+  //Add all the data we are interested in
   if (data && data.length) {
     addOneStream({
       streamName: 'GPS: (Lat.,Long.,Alt.)',

@@ -27,7 +27,11 @@
     "Mavic Pro",
     "Mavic Air",
     "Phantom",
-    "Spark"
+    "Spark",
+    "CSV",
+    "GPX",
+    "KML",
+    "mgjson"
   ],
   "author": "Juan Irache Duesca",
   "license": "ISC",

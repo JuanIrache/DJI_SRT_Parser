@@ -4,7 +4,7 @@ Parses and interprets some data from DJI's Drones SRT metadata files.
 Mostly tested with Mavic Pro SRT files. You can send me yours if you want it implemented.
 Please let me know if you create something with this :).
 
-- Used for creating this SRT log viewer: http://tailorandwayne.com/dji-srt-viewer/
+- Used for creating this SRT log viewer in https://djitelemetryoverlay.com
 
 ## Installation
 

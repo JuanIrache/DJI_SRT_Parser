@@ -5,6 +5,7 @@ Mostly tested with Mavic Pro SRT files. You can send me yours if you want it imp
 Please let me know if you create something with this :).
 
 - Used for creating this SRT log viewer in https://djitelemetryoverlay.com
+- Example video using the data in After Effects: https://youtu.be/zAkUTOLmdmQ
 
 ## Installation
 

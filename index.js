@@ -20,7 +20,9 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
   //Split difficult Phantom4Pro format
   srt = srt
     .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))
-    .replace(/\(([^\)]+)\)/g, match => match.replace(/,/g, ':separator:').replace(/\s/g, ''))
+    .replace(/\(([^\)]+)\)/g, match =>
+      match.replace(/,/g, ':separator:').replace(/\s/g, '')
+    )
     .replace(/,/g, '')
     .replace(/Â|°|(B0)/g, '') // For P4RTK: parasite characters emerged after imported using "express-fileupload" and the actual "readfile" function.
     .replace(/\:separator\:/g, ',');
@@ -52,7 +54,8 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
         converted[converted.length - 1][match[1]] = match[2];
       }
       if ((match = accurateDateRegex.exec(line))) {
-        converted[converted.length - 1].DATE = match[1] + ':' + match[2] + '.' + match[3];
+        converted[converted.length - 1].DATE =
+          match[1] + ':' + match[2] + '.' + match[3];
       } else if ((match = dateRegEx.exec(line))) {
         converted[converted.length - 1].DATE = match[0];
       }
@@ -75,7 +78,12 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
     let computed = JSON.parse(JSON.stringify(arr));
     let measure = function(lat1, lon1, lat2, lon2) {
       // generally used geo measurement function. Source: https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
-      if ([lat1, lon1, lat2, lon2].reduce((acc, val) => (!isNum(val) ? true : acc), false)) {
+      if (
+        [lat1, lon1, lat2, lon2].reduce(
+          (acc, val) => (!isNum(val) ? true : acc),
+          false
+        )
+      ) {
         return 0; //set distance to 0 if there are null or nans in positions
       }
       var R = 6378.137; // Radius of earth in KM
@@ -103,21 +111,47 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       if (i > 0) {
         let origin2d = [cmp[i - 1].GPS.LATITUDE, cmp[i - 1].GPS.LATITUDE];
         let destin2d = [pck.GPS.LATITUDE, pck.GPS.LATITUDE];
-        let distance2D = measure(origin2d[0], origin2d[1], destin2d[0], destin2d[1]);
+        let distance2D = measure(
+          origin2d[0],
+          origin2d[1],
+          destin2d[0],
+          destin2d[1]
+        );
         distance2D /= 1000;
         let distanceVert = getElevation(pck) - getElevation(cmp[i - 1]);
         distanceVert /= 1000;
         let distance3D = Math.hypot(distance2D, distanceVert);
         let time = 1; //Fallback time, 1 second
         if (pck.DATE) {
-          time = (new Date(pck.DATE).getTime() - new Date(cmp[i - 1].DATE).getTime()) / 1000.0; //seconds
+          time =
+            (new Date(pck.DATE).getTime() -
+              new Date(cmp[i - 1].DATE).getTime()) /
+            1000.0; //seconds
         } else if (pck.TIMECODE) {
           const parseTC = /(\d\d):(\d\d):(\d\d),(\d{3})/;
           let match = pck.TIMECODE.match(parseTC);
-          const useDate = new Date(0, 0, 0, match[1], match[2], match[3], match[4]);
+          const useDate = new Date(
+            0,
+            0,
+            0,
+            match[1],
+            match[2],
+            match[3],
+            match[4]
+          );
           match = cmp[i - 1].TIMECODE.match(parseTC);
-          const prevDate = new Date(0, 0, 0, match[1], match[2], match[3], match[4]);
-          time = (new Date(useDate).getTime() - new Date(prevDate).getTime()) / 1000.0; //seconds
+          const prevDate = new Date(
+            0,
+            0,
+            0,
+            match[1],
+            match[2],
+            match[3],
+            match[4]
+          );
+          time =
+            (new Date(useDate).getTime() - new Date(prevDate).getTime()) /
+            1000.0; //seconds
         }
 
         time = time == 0 ? 1 : time; //make sure we are not dividing by zero, not sure why sometimes two packets have the same timestamp
@@ -130,11 +164,13 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         else result.SPEED.TWOD = distance2D / time;
         delete result.SPEED_TWOD;
 
-        if (result.SPEED_VERTICAL != null) result.SPEED.VERTICAL = result.SPEED_VERTICAL;
+        if (result.SPEED_VERTICAL != null)
+          result.SPEED.VERTICAL = result.SPEED_VERTICAL;
         else result.SPEED.VERTICAL = distanceVert / time;
         delete result.SPEED_VERTICAL;
 
-        if (result.SPEED_THREED != null) result.SPEED.THREED = result.SPEED_THREED;
+        if (result.SPEED_THREED != null)
+          result.SPEED.THREED = result.SPEED_THREED;
         else result.SPEED.THREED = distance3D / time;
         delete result.SPEED_THREED;
       }
@@ -145,7 +181,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
 
   let computeStats = function(arr) {
     let statsObject = function(obj) {
-      if (obj.constructor === Object && Object.keys(obj).length === 0) return null;
+      if (obj.constructor === Object && Object.keys(obj).length === 0)
+        return null;
       let result = {};
       for (let elt in obj) {
         if (elt !== 'TIMECODE') {
@@ -166,7 +203,13 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
     let recursiveStatsExtraction = function(res, arr) {
       let deepEqual = function(a, b) {
         if (a === b) return true;
-        if (a == null || typeof a != 'object' || b == null || typeof b != 'object') return false;
+        if (
+          a == null ||
+          typeof a != 'object' ||
+          b == null ||
+          typeof b != 'object'
+        )
+          return false;
         var propsInA = 0,
           propsInB = 0;
         for (var prop in a) propsInA += 1;
@@ -204,18 +247,21 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
             -Infinity
           );
           result[elt].avg =
-            select.reduce((acc, val) => (isNum(val) ? acc + val : acc), 0) / select.length;
+            select.reduce((acc, val) => (isNum(val) ? acc + val : acc), 0) /
+            select.length;
         }
       }
       return result;
     };
     let result = statsObject(arr[0]);
-    if (result.constructor === Object && Object.keys(result).length === 0) return null;
+    if (result.constructor === Object && Object.keys(result).length === 0)
+      return null;
     result = recursiveStatsExtraction(result, arr);
     if (arr[arr.length - 1].DIFFTIME != undefined) {
       result.DURATION = arr[arr.length - 1].DIFFTIME; //duration of video in milliseconds
     } else if (arr[arr.length - 1].DATE != undefined) {
-      result.DURATION = new Date(arr[arr.length - 1].DATE) - new Date(arr[0].DATE); //duration of video in milliseconds
+      result.DURATION =
+        new Date(arr[arr.length - 1].DATE) - new Date(arr[0].DATE); //duration of video in milliseconds
     }
     if (arr[arr.length - 1].DISTANCE != null) {
       result.DISTANCE = arr[arr.length - 1].DISTANCE; //dsitance of flight in meters
@@ -271,14 +317,21 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       } else {
         interpretedI = Number(datum.replace(/[a-zA-Z]/g, ''));
       }
-      if (interpretedI.constructor === Object && Object.keys(interpretedI).length === 0)
+      if (
+        interpretedI.constructor === Object &&
+        Object.keys(interpretedI).length === 0
+      )
         return null;
       return interpretedI;
     };
     let fillMissingFields = function(pckt) {
       let replaceKey = function(o, old_key, new_key) {
         if (old_key !== new_key) {
-          Object.defineProperty(o, new_key, Object.getOwnPropertyDescriptor(o, old_key));
+          Object.defineProperty(
+            o,
+            new_key,
+            Object.getOwnPropertyDescriptor(o, old_key)
+          );
           delete o[old_key];
         }
       };
@@ -319,7 +372,11 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       interpretedP[item.toUpperCase()] = interpretItem(item, pck[item]);
     }
     interpretedP = fillMissingFields(interpretedP);
-    if (interpretedP.constructor === Object && Object.keys(interpretedP).length === 0) return null;
+    if (
+      interpretedP.constructor === Object &&
+      Object.keys(interpretedP).length === 0
+    )
+      return null;
     return interpretedP;
   };
   let smoothenGPS = function(arr, amount) {
@@ -364,8 +421,10 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
   for (let i = 1; i < newArr.length; i++) {
     //loop back and forth to fill missing gps data with neighbours
     if (newArr[i].GPS) {
-      if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
-      if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
+      if (!isNum(newArr[i].GPS.LATITUDE))
+        newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
+      if (!isNum(newArr[i].GPS.LONGITUDE))
+        newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
       if (newArr[i].GPS.ALTITUDE && !isNum(newArr[i].GPS.ALTITUDE))
         ewArr[i].GPS.ALTITUDE = newArr[i - 1].GPS.ALTITUDE;
     }
@@ -467,9 +526,12 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
     let extractCoordinates = function(coordsObj) {
       let coordResult = [];
       if (raw) {
-        if (coordsObj.length >= 0 && coordsObj[0]) coordResult[0] = coordsObj[0];
-        if (coordsObj.length >= 1 && coordsObj[1]) coordResult[1] = coordsObj[1];
-        if (coordsObj.length >= 2 && coordsObj[2]) coordResult[2] = coordsObj[2];
+        if (coordsObj.length >= 0 && coordsObj[0])
+          coordResult[0] = coordsObj[0];
+        if (coordsObj.length >= 1 && coordsObj[1])
+          coordResult[1] = coordsObj[1];
+        if (coordsObj.length >= 2 && coordsObj[2])
+          coordResult[2] = coordsObj[2];
       } else {
         if (coordsObj.LONGITUDE) coordResult[0] = coordsObj.LONGITUDE;
         if (coordsObj.LATITUDE) coordResult[1] = coordsObj.LATITUDE;
@@ -594,10 +656,7 @@ DJI_SRT_Parser.prototype.loadFile = function(data, fileName, preparedData) {
       return d;
     }
   };
-  this.flow(
-    decode(data),
-    preparedData
-  );
+  this.flow(decode(data), preparedData);
 };
 
 DJI_SRT_Parser.prototype.flow = function(data, preparedData) {
@@ -628,7 +687,10 @@ function toExport(context, file, fileName, preparedData) {
     },
     setSmoothing: function(smooth) {
       if (context.loaded) {
-        context.metadata = context.interpretMetadata(context.rawMetadata, smooth);
+        context.metadata = context.interpretMetadata(
+          context.rawMetadata,
+          smooth
+        );
       } else {
         notReady();
       }
@@ -643,7 +705,9 @@ function toExport(context, file, fileName, preparedData) {
       return context.loaded ? context.createCSV(raw) : notReady();
     },
     toMGJSON: function() {
-      return context.loaded ? context.createMGJSON(context.fileName) : notReady();
+      return context.loaded
+        ? context.createMGJSON(context.fileName)
+        : notReady();
     },
     toGeoJSON: function(raw) {
       return context.loaded ? context.createGeoJSON(raw) : notReady();

@@ -61,6 +61,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
       }
     }
   });
+
   if (converted.length < 1) {
     console.log('Error converting object');
     return null;
@@ -350,6 +351,17 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
           });
         }
       }
+
+      //Make up date with timecode if not present
+      if (!pckt['DATE'] && pckt['TIMECODE']) {
+        pckt['DATE'] = new Date(
+          new Date()
+            .toISOString()
+            .replace(/\d{2}:\d{2}:\d{2}.\d{3}Z/i, pckt['TIMECODE'])
+            .replace(/,/, '.')
+        ).getTime();
+      }
+
       let latitude = pckt['LATITUDE']; //Mavic 2 style
       let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
       let altitude = pckt['ALTITUDE'] || pckt['BAROMETER'];

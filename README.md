@@ -45,9 +45,9 @@ console.log(DJIData.getSmoothing());
 //setSmoothing() modifies the current smoothing value, 0 for no smoothing
 console.log(DJIData.setSmoothing(0));
 
-//getMilisecondsPerSamples() returns the current millisecondsPerSamplerate value. This delimits how many milliseconds have to pass between data packets, useful for scenarios that imply long files, and/or for drones that record in excesive sample rate, like mavic 2 pro (every 40ms.)
+//getMillisecondsPerSamples() returns the current millisecondsPerSamples value. This delimits how many milliseconds have to pass between data packets, useful for scenarios that imply long files, and/or for drones that record in excesive sample rate, like mavic 2 pro (every 40ms.)
 console.log(DJIData.getMillisecondsPerSamples());
-//setMilisecondsPerSamples() modifies the current sample rate value, 0 for no resample. NOTE: if is used in conjuntion with setSmoothing, this must be in last position. The discarted packets will not affect the stats and the computed smooth.
+//setMillisecondsPerSamples() modifies the current sample rate value, 0 for no resample. NOTE: if is used in conjuntion with setSmoothing, must be in last position. The discarded packets will not affect the stats and the computed smooth.
 console.log(DJIData.setMillisecondsPerSamples(0));
 
 //getFileName() returns the filename, useful if you loaded multiple files in multiple instances

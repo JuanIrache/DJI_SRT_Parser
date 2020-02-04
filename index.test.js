@@ -129,3 +129,32 @@ test('We should be able to read the aperture in the p4p format', () => {
 test('We should be able to read the aperture in the p4p format', () => {
   expect(p4rtk.metadata().packets[0].G_PRY).toBeDefined();
 });
+test('The max altitude should be readable from the ALTITUDE field', () => {
+  expect(p4rtk.metadata().stats.GPS.ALTITUDE.max).toBe(14.875);
+});
+
+//mavic 2 pro extra large
+data = preload(`./samples/mavic_2pro_new.SRT`);
+let Mavic_2_pro = DJISRTParser(data, 'mavic_2pro_new.SRT');
+Mavic_2_pro.setSmoothing(0);
+test('Mavic 2 large - all the packets', () => {
+  expect(Mavic_2_pro.metadata().packets.length).toBe(8952);
+});
+test('Mavic 2 large - aprox. half the packets', () => {
+  Mavic_2_pro.setMillisecondsPerSample(80);
+  expect(Mavic_2_pro.metadata().packets.length).toBe(4559);
+});
+test('Mavic 2 large - low quantity packets', () => {
+  Mavic_2_pro.setMillisecondsPerSample(1500);
+  expect(Mavic_2_pro.metadata().packets.length).toBe(244);
+});
+test('Mavic 2 large - get Milliseconds function', () => {
+  Mavic_2_pro.setMillisecondsPerSample(700);
+  expect(Mavic_2_pro.getMillisecondsPerSample()).toBe(700);
+});
+test('Mavic 2 Pro Format result should contain metadata', () => {
+  expect(Mavic_2_pro.metadata()).toBeDefined();
+});
+test('We should be able to read the focal lenght in the Mavic 2 format', () => {
+  expect(Mavic_2_pro.metadata().packets[0].FOCAL_LEN).toBe(280);
+});

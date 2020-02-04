@@ -39,10 +39,17 @@ console.log(DJIData.rawMetadata());
 //(1) a packets array similar to rawMetadata() but with smoothing applied to GPS locations (see below why smoothing is used), distances and with computed speeds in 2d, 3d and vertical
 //(2) a stats object containing stats like minimum, average and maximum speeds based on the interpreted data
 console.log(DJIData.metadata());
+
 //getSmoothing() returns the current smoothing value (how many data packets to average with, in each array direction)
 console.log(DJIData.getSmoothing());
 //setSmoothing() modifies the current smoothing value, 0 for no smoothing
 console.log(DJIData.setSmoothing(0));
+
+//getMillisecondsPerSamples() returns the current millisecondsPerSamples value. This delimits how many milliseconds have to pass between data packets, useful for scenarios that imply long files, and/or for drones that record in excesive sample rate, like mavic 2 pro (every 40ms.)
+console.log(DJIData.getMillisecondsPerSamples());
+//setMillisecondsPerSamples() modifies the current sample rate value, 0 for no resample. NOTE: if is used in conjuntion with setSmoothing, must be in last position. The discarded packets will not affect the stats and the computed smooth.
+console.log(DJIData.setMillisecondsPerSamples(0));
+
 //getFileName() returns the filename, useful if you loaded multiple files in multiple instances
 console.log(DJIData.getFileName());
 //toCSV() exports the current interpretation of data to CSV format. The optional value raw exports the raw data instead

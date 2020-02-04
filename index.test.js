@@ -24,7 +24,10 @@ test('Date should be present', () => {
   expect(typeof MavicPro.metadata().stats.DATE).toBe('number');
 });
 test('This sample should contain a Home point', () => {
-  expect(MavicPro.metadata().stats.HOME[0]).toEqual({ LATITUDE: -20.2532, LONGITUDE: 149.0251 });
+  expect(MavicPro.metadata().stats.HOME[0]).toEqual({
+    LATITUDE: -20.2532,
+    LONGITUDE: 149.0251
+  });
 });
 test('The average 3D speed should be set', () => {
   expect(MavicPro.metadata().stats.SPEED.THREED.avg).toBe(17.67834309966437);
@@ -114,7 +117,7 @@ test('We should be able to read the aperture in the p4p format', () => {
   expect(p4p.metadata().packets[0].FNUM).toBe(3.2);
 });
 
-//p4rtk attempt
+//p4rtk
 data = preload(`./samples/p4_rtk.SRT`);
 let p4rtk = DJISRTParser(data, 'p4_rtk.SRT');
 test('p4 RTK Format result should contain metadata', () => {
@@ -123,14 +126,11 @@ test('p4 RTK Format result should contain metadata', () => {
 test('The max altitude should be readable from the ALTITUDE field', () => {
   expect(p4rtk.metadata().stats.GPS.ALTITUDE.max).toBe(14.875);
 });
-test('We should be able to read the aperture in the p4p format', () => {
+test('We should be able to read the aperture in the p4p rtk format', () => {
   expect(p4rtk.metadata().packets[0].FNUM).toBe(5.6);
 });
-test('We should be able to read the aperture in the p4p format', () => {
+test('We should be able to read G_PRY in the p4p rtk format', () => {
   expect(p4rtk.metadata().packets[0].G_PRY).toBeDefined();
-});
-test('The max altitude should be readable from the ALTITUDE field', () => {
-  expect(p4rtk.metadata().stats.GPS.ALTITUDE.max).toBe(14.875);
 });
 
 //mavic 2 pro extra large
@@ -155,6 +155,6 @@ test('Mavic 2 large - get Milliseconds function', () => {
 test('Mavic 2 Pro Format result should contain metadata', () => {
   expect(Mavic_2_pro.metadata()).toBeDefined();
 });
-test('We should be able to read the focal lenght in the Mavic 2 format', () => {
+test('We should be able to read the focal length in the Mavic 2 format', () => {
   expect(Mavic_2_pro.metadata().packets[0].FOCAL_LEN).toBe(280);
 });

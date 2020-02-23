@@ -34,8 +34,6 @@ function chooseAlt(pckt) {
     return pckt.HB;
   } else if (pckt.HS != undefined) {
     return pckt.HS;
-  } else if (pckt.GPS != undefined && pckt.GPS.ALTITUDE) {
-    return pckt.GPS.ALTITUDE;
   }
   return 0;
 }
@@ -110,14 +108,21 @@ function createDynamicDataOutline(matchName, displayName, units, type) {
 }
 
 //Returns the data as parts of an mgjson object
-function convertSamples(data) {
+function convertSamples(data, elevationOffset) {
   //Will hold the description of each stream
   let dataOutline = [];
   //Holds the streams
   let dataDynamicSamples = [];
 
   //Start deducing streams here
-  function addOneStream({ streamName, units, sampleSetID, type, extract }) {
+  function addOneStream({
+    streamName,
+    units,
+    sampleSetID,
+    type,
+    extract,
+    elevationOffset
+  }) {
     try {
       if (data && data.length && extract(data[0]) != null) {
         //Prepare sample set
@@ -254,8 +259,13 @@ function convertSamples(data) {
       sampleSetID: `streamGPS`,
       type: 'numberStringArray',
       extract: function(s) {
-        return [s.GPS.LATITUDE, s.GPS.LONGITUDE, chooseAlt(s)];
-      }
+        return [
+          s.GPS.LATITUDE,
+          s.GPS.LONGITUDE,
+          chooseAlt(s) + elevationOffset
+        ];
+      },
+      elevationOffset
     });
     addOneStream({
       streamName: 'SPEED: (2D,3D.)',
@@ -317,8 +327,8 @@ function convertSamples(data) {
 }
 
 //Converts the processed data to After Effects format
-module.exports = function(data, name = '') {
-  const converted = convertSamples(data);
+module.exports = function(data, name = '', elevationOffset) {
+  const converted = convertSamples(data, elevationOffset);
   //The format is very convoluted. This is the outer structure
   let result = {
     version: 'MGJSON2.0.0',

@@ -562,12 +562,19 @@ DJI_SRT_Parser.prototype.createCSV = function(raw) {
   return csvContent;
 };
 
-DJI_SRT_Parser.prototype.createMGJSON = function(name = '') {
-  const mgJSONContent = toMGJSON(this.metadata.packets, name);
+DJI_SRT_Parser.prototype.createMGJSON = function(
+  name = '',
+  elevationOffset = 0
+) {
+  const mgJSONContent = toMGJSON(this.metadata.packets, name, elevationOffset);
   return mgJSONContent;
 };
 
-DJI_SRT_Parser.prototype.createGeoJSON = function(raw, waypoints) {
+DJI_SRT_Parser.prototype.createGeoJSON = function(
+  raw,
+  waypoints,
+  elevationOffset = 0
+) {
   function GeoJSONExtract(obj, raw) {
     let extractProps = function(childObj, pre) {
       let results = [];
@@ -592,7 +599,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw, waypoints) {
         if (coordsObj.LONGITUDE) coordResult[0] = coordsObj.LONGITUDE;
         if (coordsObj.LATITUDE) coordResult[1] = coordsObj.LATITUDE;
         if (getElevation(coordsObj) != null)
-          coordResult[2] = getElevation(coordsObj);
+          coordResult[2] = getElevation(coordsObj) + elevationOffset;
       }
       return coordResult;
     };
@@ -760,14 +767,14 @@ function toExport(context, file, fileName, preparedData) {
     toCSV: function(raw) {
       return context.loaded ? context.createCSV(raw) : notReady();
     },
-    toMGJSON: function() {
+    toMGJSON: function(elevationOffset) {
       return context.loaded
-        ? context.createMGJSON(context.fileName)
+        ? context.createMGJSON(context.fileName, elevationOffset)
         : notReady();
     },
-    toGeoJSON: function(raw, waypoints) {
+    toGeoJSON: function(raw, waypoints, elevationOffset) {
       return context.loaded
-        ? context.createGeoJSON(raw, waypoints)
+        ? context.createGeoJSON(raw, waypoints, elevationOffset)
         : notReady();
     },
     getFileName: function() {

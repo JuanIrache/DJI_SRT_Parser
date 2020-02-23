@@ -30,7 +30,7 @@ let dataString = readTextFile(fileName);
 //You can create multiple instances, one for reading each SRT file. Specify data as a string and filename for future reference
 let DJIData = DJISRTParser(dataString, fileName);
 
-//toGeoJSON(raw, waypoints) exports the current interpretation of data to the geoJSON format. The optional value raw exports the raw data instead. The second parameter, waypoints, specifies whether to include a single feature with all the data for each waypoint. You can then use tokml or togpx modules to convert to those formats
+//toGeoJSON(raw, waypoints, elevationOffset) exports the current interpretation of data to the geoJSON format. The optional value raw exports the raw data instead. The second parameter, waypoints, specifies whether to include a single feature with all the data for each waypoint. The third parameter, elevationOffset, offset the elevation values by the specified meters. You can then use tokml or togpx modules to convert to those formats
 let geoJSON = DJIData.toGeoJSON();
 
 //rawMetadata() returns an array of objects with labels and the unmodified SRT data in the form of strings
@@ -54,7 +54,7 @@ console.log(DJIData.setMillisecondsPerSamples(0));
 console.log(DJIData.getFileName());
 //toCSV() exports the current interpretation of data to CSV format. The optional value raw exports the raw data instead
 let csvData = DJIData.toCSV();
-//toMGJSON() exports the current interpretation of data to Adobe's mgJSON format for use in After Effects (see more info below).
+//toMGJSON(elevationOffset) exports the current interpretation of data to Adobe's mgJSON format for use in After Effects (see more info below). An elevation offset can be specified in meters.
 let mgjsonData = DJIData.toMGJSON();
 //Now you can also load a GeoJSON (or JSON) file directly into the rawMetadata field. This can be useful if you want to import data from other sources into the system,
 let DJIData = DJISRTParser(JSONDataString, JSONfileName, true);

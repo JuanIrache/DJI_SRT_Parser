@@ -34,7 +34,14 @@ function preload(file, cb) {
   }
 }
 
-let files = ['mavic_pro', 'mavic_air', 'old_format', 'mavic_pro_buggy', 'mavic_2_style', 'p4p_sample'];
+let files = [
+  'mavic_pro',
+  'mavic_air',
+  'old_format',
+  'mavic_pro_buggy',
+  'mavic_2_style',
+  'p4p_sample'
+];
 let DJISRTParser = require('../index');
 let i = 0;
 preload(files[i] + '.SRT', confirm);
@@ -43,16 +50,26 @@ function confirm(data) {
   DJIfile = DJISRTParser(data, files[i] + '.SRT');
   if (DJIfile) {
     console.log('\nLoaded file ' + DJIfile.getFileName());
-    console.log('The video was recorded on ' + new Date(DJIfile.metadata().stats.DATE));
+    console.log(
+      'The video was recorded on ' + new Date(DJIfile.metadata().stats.DATE)
+    );
     if (DJIfile.metadata().stats.HOME) {
       console.log(
-        "The drone's home was set to " + DJIfile.metadata().stats.HOME[0].LATITUDE + 'º,' + DJIfile.metadata().stats.HOME[0].LONGITUDE + 'º'
+        "The drone's home was set to " +
+          DJIfile.metadata().stats.HOME[0].LATITUDE +
+          'º,' +
+          DJIfile.metadata().stats.HOME[0].LONGITUDE +
+          'º'
       );
     } else {
       console.log('\x1b[31m%s\x1b[0m', 'Home data missing');
     }
     if (DJIfile.metadata().stats.SPEED) {
-      console.log('Average 3D speed was ' + Math.round(DJIfile.metadata().stats.SPEED.THREED.avg) + ' km/h');
+      console.log(
+        'Average 3D speed was ' +
+          Math.round(DJIfile.metadata().stats.SPEED.THREED.avg) +
+          ' km/h'
+      );
     } else {
       console.log('\x1b[31m%s\x1b[0m', 'Speed data missing');
     }
@@ -64,7 +81,10 @@ function confirm(data) {
       elevation = DJIfile.metadata().stats.HB.max;
     } else if (DJIfile.metadata().stats.HS) {
       elevation = DJIfile.metadata().stats.HS.max;
-    } else if (DJIfile.metadata().stats.GPS && DJIfile.metadata().stats.GPS.ALTITUDE) {
+    } else if (
+      DJIfile.metadata().stats.GPS &&
+      DJIfile.metadata().stats.GPS.ALTITUDE
+    ) {
       elevation = DJIfile.metadata().stats.GPS.ALTITUDE.max;
     }
     if (elevation) {
@@ -75,10 +95,18 @@ function confirm(data) {
     if (typeof DJIfile.metadata().stats.DURATION !== 'number') {
       console.log('\x1b[31m%s\x1b[0m', 'Duration is missing');
     } else {
-      console.log('The video recorded for ' + DJIfile.metadata().stats.DURATION / 1000 + ' seconds');
+      console.log(
+        'The video recorded for ' +
+          DJIfile.metadata().stats.DURATION / 1000 +
+          ' seconds'
+      );
     }
     if (DJIfile.metadata().stats.GPS) {
-      console.log('While flying for ' + Math.round(DJIfile.metadata().stats.DISTANCE) + ' meters');
+      console.log(
+        'While flying for ' +
+          Math.round(DJIfile.metadata().stats.DISTANCE) +
+          ' meters'
+      );
     } else {
       console.log('\x1b[31m%s\x1b[0m', 'GPS data missing');
     }
@@ -96,7 +124,10 @@ function confirm(data) {
           DJIfile.metadata().packets[0].ISO
       );
     } else {
-      console.log('\x1b[31m%s\x1b[0m', 'Some camera data missing (ISO, Shutter or Fnum)');
+      console.log(
+        '\x1b[31m%s\x1b[0m',
+        'Some camera data missing (ISO, Shutter or Fnum)'
+      );
     }
     if (!DJIfile.metadata().stats.EV) {
       console.log('The camera was probably using auto-exposure');

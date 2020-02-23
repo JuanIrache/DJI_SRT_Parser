@@ -588,12 +588,11 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw, waypoints) {
           coordResult[0] = coordsObj[0];
         if (coordsObj.length >= 1 && coordsObj[1])
           coordResult[1] = coordsObj[1];
-        if (coordsObj.length >= 2 && coordsObj[2])
-          coordResult[2] = coordsObj[2];
       } else {
         if (coordsObj.LONGITUDE) coordResult[0] = coordsObj.LONGITUDE;
         if (coordsObj.LATITUDE) coordResult[1] = coordsObj.LATITUDE;
-        if (coordsObj.SATELLITES) coordResult[2] = coordsObj.SATELLITES;
+        if (getElevation(coordsObj) != null)
+          coordResult[2] = getElevation(coordsObj);
       }
       return coordResult;
     };
@@ -611,14 +610,6 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw, waypoints) {
         result.properties.timestamp = obj[elt];
       } else if (elt === 'GPS') {
         result.geometry.coordinates = extractCoordinates(obj[elt]);
-        // } else if (elt === "HOME") {//no, readers don't understand it
-        //   result.properties.HOME = {
-        //     type: "Feature",
-        //     geometry: {
-        //       type: "Point",
-        //       coordinates: extractCoordinates(obj[elt])
-        //     },
-        //   };
       } else if (typeof obj[elt] === 'object' && obj[elt] != null) {
         let children = extractProps(obj[elt], elt);
         children.forEach(child => {
@@ -626,14 +617,6 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw, waypoints) {
         });
       } else {
         result.properties[elt] = obj[elt];
-      }
-    }
-
-    if (!raw) {
-      //only modify elevation if user does want interpreted data, not raw
-      let bestElevation = getElevation(obj);
-      if (bestElevation != null) {
-        result.geometry.coordinates[2] = bestElevation;
       }
     }
 

@@ -65,7 +65,7 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
   });
 
   if (converted.length < 1) {
-    console.log('Error converting object');
+    console.error('Error converting object');
     return null;
   }
 
@@ -508,7 +508,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
   }
   let stats = computeStats(newArr);
   if (newArr.length < 1) {
-    console.log('Error intrerpreting metadata');
+    console.error('Error intrerpreting metadata');
     return null;
   }
   // Store the array for later
@@ -561,7 +561,7 @@ DJI_SRT_Parser.prototype.createCSV = function(raw) {
     return acc + row + '\r\n';
   }, '');
   if (!csvContent) {
-    console.log('Error creating CSV');
+    console.error('Error creating CSV');
     return null;
   }
   return csvContent;
@@ -706,7 +706,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw, waypoints) {
   GeoJSONContent.features.push(createLinestring(features));
 
   if (!GeoJSONContent.features) {
-    console.log('Error creating GeoJSON');
+    console.error('Error creating GeoJSON');
     return null;
   }
 
@@ -738,7 +738,7 @@ DJI_SRT_Parser.prototype.flow = function(data, preparedData) {
 };
 
 function notReady() {
-  console.log('Data not ready');
+  console.error('Data not ready');
   return null;
 }
 
@@ -803,7 +803,7 @@ function create_DJI_SRT_Parser(file, fileName, preparedData) {
     var instance = new DJI_SRT_Parser();
     return toExport(instance, file, fileName, preparedData);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return null;
   }
 }

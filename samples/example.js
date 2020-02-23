@@ -83,9 +83,9 @@ function confirm(data) {
       elevation = DJIfile.metadata().stats.HS.max;
     } else if (
       DJIfile.metadata().stats.GPS &&
-      DJIfile.metadata().stats.GPS.ALTITUDE
+      DJIfile.metadata().stats.GPS.SATELLITES
     ) {
-      elevation = DJIfile.metadata().stats.GPS.ALTITUDE.max;
+      elevation = DJIfile.metadata().stats.GPS.SATELLITES.max;
     }
     if (elevation) {
       console.log('Highest registered elevation was ' + elevation + ' meters');

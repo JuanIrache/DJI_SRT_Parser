@@ -323,7 +323,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         interpretedI = {
           LATITUDE: isNum(datum[1]) ? Number(datum[1]) : 'n/a',
           LONGITUDE: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
-          ALTITUDE: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
+          SATELLITES: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
         };
       } else if (key.toUpperCase() === 'F_PRY') {
         interpretedI = {
@@ -410,18 +410,14 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
 
       let latitude = pckt['LATITUDE']; //Mavic 2 style
       let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
-      let altitude = pckt['ALTITUDE'] || pckt['BAROMETER'];
+      let satellites = pckt['SATELLITES'];
       if (latitude != undefined && longitude != undefined) {
         let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
         pckt.GPS = {
           LONGITUDE: longitude,
-          LATITUDE: latitude
+          LATITUDE: latitude,
+          SATELLITES: satellites
         };
-        if (altitude != undefined) {
-          pckt.GPS.ALTITUDE = altitude;
-        } else {
-          pckt.GPS.ALTITUDE = 0;
-        }
       }
       return pckt;
     };
@@ -446,7 +442,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       let sums = {
         LATITUDE: 0,
         LONGITUDE: 0,
-        ALTITUDE: 0
+        SATELLITES: 0
       };
       let latSkips = 0;
       let lonSkips = 0;
@@ -463,15 +459,15 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         } else {
           lonSkips++;
         }
-        if (isNum(arr[k].GPS.ALTITUDE)) {
-          sums.ALTITUDE += arr[k].GPS.ALTITUDE;
+        if (isNum(arr[k].GPS.SATELLITES)) {
+          sums.SATELLITES += arr[k].GPS.SATELLITES;
         } else {
           altSkips++;
         }
       }
       smoothArr[i].GPS.LATITUDE = sums.LATITUDE / (amount * 2 - latSkips);
       smoothArr[i].GPS.LONGITUDE = sums.LONGITUDE / (amount * 2 - lonSkips);
-      smoothArr[i].GPS.ALTITUDE = sums.ALTITUDE / (amount * 2 - altSkips);
+      smoothArr[i].GPS.SATELLITES = sums.SATELLITES / (amount * 2 - altSkips);
     }
     return smoothArr;
   };
@@ -485,16 +481,16 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
       if (!isNum(newArr[i].GPS.LONGITUDE))
         newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.ALTITUDE && !isNum(newArr[i].GPS.ALTITUDE))
-        ewArr[i].GPS.ALTITUDE = newArr[i - 1].GPS.ALTITUDE;
+      if (newArr[i].GPS.SATELLITES && !isNum(newArr[i].GPS.SATELLITES))
+        ewArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
     }
   }
   for (let i = newArr.length - 2; i >= 0; i--) {
     if (newArr[i].GPS) {
       if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i + 1].GPS.LATITUDE;
       if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i + 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.ALTITUDE != null && !isNum(newArr[i].GPS.ALTITUDE))
-        newArr[i + 1].GPS.ALTITUDE;
+      if (newArr[i].GPS.SATELLITES != null && !isNum(newArr[i].GPS.SATELLITES))
+        newArr[i + 1].GPS.SATELLITES;
     }
   }
   let smoothing = smooth != undefined ? smooth : 4;
@@ -528,8 +524,6 @@ function getElevation(src) {
     return src.HB;
   } else if (src.HS != undefined) {
     return src.HS;
-  } else if (src.GPS != undefined && src.GPS.ALTITUDE) {
-    return src.GPS.ALTITUDE;
   }
   return null;
 }
@@ -598,7 +592,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw, waypoints) {
       } else {
         if (coordsObj.LONGITUDE) coordResult[0] = coordsObj.LONGITUDE;
         if (coordsObj.LATITUDE) coordResult[1] = coordsObj.LATITUDE;
-        if (coordsObj.ALTITUDE) coordResult[2] = coordsObj.ALTITUDE;
+        if (coordsObj.SATELLITES) coordResult[2] = coordsObj.SATELLITES;
       }
       return coordResult;
     };

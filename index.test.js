@@ -98,8 +98,8 @@ test('Buggy Format result should contain metadata', () => {
 test('The average 3D speed should be set in the buggy format', () => {
   expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(10.126509453153785);
 });
-test('The max altitude should be readable from the ALTITUDE field', () => {
-  expect(Buggy.metadata().stats.GPS.ALTITUDE.max).toBe(18);
+test('The max satellites should be readable from the SATELLITES field', () => {
+  expect(Buggy.metadata().stats.GPS.SATELLITES.max).toBe(18);
 });
 test('We should be able to read the aperture in the buggy format', () => {
   expect(Buggy.metadata().packets[0].FNUM).toBe(2.2);
@@ -110,8 +110,8 @@ let p4p = DJISRTParser(data, 'p4p_sample.SRT');
 test('p4p Format result should contain metadata', () => {
   expect(p4p.metadata()).toBeDefined();
 });
-test('The max altitude should be readable from the ALTITUDE field', () => {
-  expect(p4p.metadata().stats.GPS.ALTITUDE.max).toBe(18);
+test('The max satellites should be readable from the SATELLITES field', () => {
+  expect(p4p.metadata().stats.GPS.SATELLITES.max).toBe(18);
 });
 test('We should be able to read the aperture in the p4p format', () => {
   expect(p4p.metadata().packets[0].FNUM).toBe(3.2);
@@ -123,8 +123,8 @@ let p4rtk = DJISRTParser(data, 'p4_rtk.SRT');
 test('p4 RTK Format result should contain metadata', () => {
   expect(p4rtk.metadata()).toBeDefined();
 });
-test('The max altitude should be readable from the ALTITUDE field', () => {
-  expect(p4rtk.metadata().stats.GPS.ALTITUDE.max).toBe(14.875);
+test('The max satellites should be readable from the SATELLITES field', () => {
+  expect(p4rtk.metadata().stats.GPS.SATELLITES.max).toBe(14.875);
 });
 test('We should be able to read the aperture in the p4p rtk format', () => {
   expect(p4rtk.metadata().packets[0].FNUM).toBe(5.6);

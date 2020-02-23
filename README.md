@@ -30,7 +30,7 @@ let dataString = readTextFile(fileName);
 //You can create multiple instances, one for reading each SRT file. Specify data as a string and filename for future reference
 let DJIData = DJISRTParser(dataString, fileName);
 
-//toGeoJSON() exports the current interpretation of data to a CSV spreadsheet format. The optional value raw exports the raw data instead. You can then use tokml or togpx modules to convert to those formats
+//toGeoJSON(raw, waypoints) exports the current interpretation of data to the geoJSON format. The optional value raw exports the raw data instead. The second parameter, waypoints, specifies whether to include a single feature with all the data for each waypoint. You can then use tokml or togpx modules to convert to those formats
 let geoJSON = DJIData.toGeoJSON();
 
 //rawMetadata() returns an array of objects with labels and the unmodified SRT data in the form of strings
@@ -108,4 +108,5 @@ Please make your changes to the **dev** branch, so that automated tests can be r
 
 ## To-Do
 
+- Handle home altitude?
 - Add tests for export formats

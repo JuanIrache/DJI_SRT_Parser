@@ -493,15 +493,17 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         newArr[i + 1].GPS.SATELLITES;
     }
   }
-  let smoothing = smooth != undefined ? smooth : 4;
-  smoothing = smoothing >= 0 ? smoothing : 0;
+  if (smooth != undefined) {
+    this.smoothened = smooth;
+  }
+  this.smoothened = this.smoothened >= 0 ? this.smoothened : 0;
   if (newArr[0].GPS) {
-    if (smoothing !== 0) {
-      newArr = smoothenGPS(newArr, smoothing);
+    if (this.smoothened !== 0) {
+      newArr = smoothenGPS(newArr, this.smoothened);
     }
-    this.smoothened = smoothing;
     newArr = computeSpeed(newArr);
   }
+
   let stats = computeStats(newArr);
   if (newArr.length < 1) {
     console.error('Error intrerpreting metadata');

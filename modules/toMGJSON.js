@@ -34,8 +34,6 @@ function chooseAlt(pckt) {
     return pckt.HB;
   } else if (pckt.HS != undefined) {
     return pckt.HS;
-  } else if (pckt.GPS != undefined && pckt.GPS.ALTITUDE) {
-    return pckt.GPS.ALTITUDE;
   }
   return 0;
 }
@@ -110,14 +108,21 @@ function createDynamicDataOutline(matchName, displayName, units, type) {
 }
 
 //Returns the data as parts of an mgjson object
-function convertSamples(data) {
+function convertSamples(data, elevationOffset) {
   //Will hold the description of each stream
   let dataOutline = [];
   //Holds the streams
   let dataDynamicSamples = [];
 
   //Start deducing streams here
-  function addOneStream({ streamName, units, sampleSetID, type, extract }) {
+  function addOneStream({
+    streamName,
+    units,
+    sampleSetID,
+    type,
+    extract,
+    elevationOffset
+  }) {
     try {
       if (data && data.length && extract(data[0]) != null) {
         //Prepare sample set
@@ -127,7 +132,12 @@ function convertSamples(data) {
         };
 
         //Create the stream structure
-        let dataOutlineChild = createDynamicDataOutline(sampleSetID, streamName, units, type);
+        let dataOutlineChild = createDynamicDataOutline(
+          sampleSetID,
+          streamName,
+          units,
+          type
+        );
         //And find the type
 
         const setMaxMinPadStr = function(val, outline) {
@@ -151,7 +161,10 @@ function convertSamples(data) {
             range.occuring.min = Math.min(val, range.occuring.min);
             range.occuring.max = Math.max(val, range.occuring.max);
             //And max left and right padding
-            pattern.digitsInteger = Math.max(bigStr(Math.floor(val)).length, pattern.digitsInteger);
+            pattern.digitsInteger = Math.max(
+              bigStr(Math.floor(val)).length,
+              pattern.digitsInteger
+            );
             pattern.digitsDecimal = Math.max(
               bigStr(val).replace(/^\d*\.?/, '').length,
               pattern.digitsDecimal
@@ -179,7 +192,8 @@ function convertSamples(data) {
                 setMaxMinPadNum(
                   v,
                   dataOutlineChild.dataType.numberArrayProperties.pattern,
-                  dataOutlineChild.dataType.numberArrayProperties.arrayRanges.ranges[i]
+                  dataOutlineChild.dataType.numberArrayProperties.arrayRanges
+                    .ranges[i]
                 );
               });
             } else if (type === 'paddedString') {
@@ -197,16 +211,20 @@ function convertSamples(data) {
             //Apply max padding to every sample
             s.value = padStringNumber(
               s.value,
-              dataOutlineChild.dataType.numberStringProperties.pattern.digitsInteger,
-              dataOutlineChild.dataType.numberStringProperties.pattern.digitsDecimal
+              dataOutlineChild.dataType.numberStringProperties.pattern
+                .digitsInteger,
+              dataOutlineChild.dataType.numberStringProperties.pattern
+                .digitsDecimal
             );
           } else if (type === 'numberStringArray') {
             //Apply max padding to every sample
             s.value = s.value.map(v =>
               padStringNumber(
                 v,
-                dataOutlineChild.dataType.numberArrayProperties.pattern.digitsInteger,
-                dataOutlineChild.dataType.numberArrayProperties.pattern.digitsDecimal
+                dataOutlineChild.dataType.numberArrayProperties.pattern
+                  .digitsInteger,
+                dataOutlineChild.dataType.numberArrayProperties.pattern
+                  .digitsDecimal
               )
             );
           } else if (type === 'paddedString') {
@@ -216,7 +234,8 @@ function convertSamples(data) {
               ' '
             );
             s.value.length = s.value.length.padStart(
-              dataOutlineChild.dataType.paddedStringProperties.maxDigitsInStrLength,
+              dataOutlineChild.dataType.paddedStringProperties
+                .maxDigitsInStrLength,
               '0'
             );
           }
@@ -240,8 +259,13 @@ function convertSamples(data) {
       sampleSetID: `streamGPS`,
       type: 'numberStringArray',
       extract: function(s) {
-        return [s.GPS.LATITUDE, s.GPS.LONGITUDE, chooseAlt(s)];
-      }
+        return [
+          s.GPS.LATITUDE,
+          s.GPS.LONGITUDE,
+          chooseAlt(s) + elevationOffset
+        ];
+      },
+      elevationOffset
     });
     addOneStream({
       streamName: 'SPEED: (2D,3D.)',
@@ -303,8 +327,8 @@ function convertSamples(data) {
 }
 
 //Converts the processed data to After Effects format
-module.exports = function(data, name = '') {
-  const converted = convertSamples(data);
+module.exports = function(data, name = '', elevationOffset) {
+  const converted = convertSamples(data, elevationOffset);
   //The format is very convoluted. This is the outer structure
   let result = {
     version: 'MGJSON2.0.0',
@@ -319,7 +343,11 @@ module.exports = function(data, name = '') {
     },
     //Create first data point with filename
     dataOutline: [
-      createDataOutlineChildText('filename', 'File name', name.replace(/\.srt$/i, '')),
+      createDataOutlineChildText(
+        'filename',
+        'File name',
+        name.replace(/\.srt$/i, '')
+      ),
       ...converted.dataOutline
     ],
     //And paste the converted data

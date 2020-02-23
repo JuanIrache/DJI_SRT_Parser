@@ -108,4 +108,5 @@ Please make your changes to the **dev** branch, so that automated tests can be r
 
 ## To-Do
 
+- Handle home altitude?
 - Add tests for export formats

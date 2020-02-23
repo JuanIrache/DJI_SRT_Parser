@@ -73,17 +73,14 @@ DJI_SRT_Parser.prototype.srtToObject = function(srt) {
 };
 
 DJI_SRT_Parser.prototype.millisecondsPerSample = function(milliseconds) {
-
   // get the smoothed array already saved and interpreted
   let newArr = this.smoothArr;
 
   let millisecondsPerSampleTIMECODE = function(amount) {
-
     let lastTimecode = 0;
     let newResArr = [];
 
     for (let i = 0; i < newArr.length; i++) {
-
       let millisecondsFromTimecode = getMilliseconds(newArr[i].TIMECODE);
 
       if (millisecondsFromTimecode < lastTimecode) {
@@ -93,37 +90,31 @@ DJI_SRT_Parser.prototype.millisecondsPerSample = function(milliseconds) {
       newResArr.push(newArr[i]);
       // We save this value with the seconds parameters applyed
       lastTimecode = millisecondsFromTimecode + amount;
-
     }
 
     return newResArr;
-
-  }
+  };
 
   // Calculate seconds from the timecode
-  let getMilliseconds = function (timecode) {
-
-
+  let getMilliseconds = function(timecode) {
     let m = timecode.split(','); // Split on the comma of milliseconds
     let t = m[0].split(':'); // Split on time separators
 
-    let milliseconds = ((+t[0]) * 60 * 60 + (+t[1]) * 60 + (+t[2])) * 1000;
+    let milliseconds = (+t[0] * 60 * 60 + +t[1] * 60 + +t[2]) * 1000;
 
     return Number(milliseconds) + Number(m[1]);
-
-  }
+  };
 
   if (newArr[0].TIMECODE) {
     // If the value is 0, don't do anything
     if (milliseconds !== 0) {
       newArr = millisecondsPerSampleTIMECODE(milliseconds);
     }
-    this.millisecondsSample = (milliseconds);
+    this.millisecondsSample = milliseconds;
   }
 
   return newArr;
-
-}
+};
 
 DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
   // Forcing srt to have one information line plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
@@ -148,9 +139,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       var a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
       var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       var d = R * c;
       return d * 1000; // meters
@@ -757,7 +748,7 @@ function toExport(context, file, fileName, preparedData) {
     getSmoothing: function() {
       return context.loaded ? context.smoothened : notReady();
     },
-    getMillisecondsPerSample: function () {
+    getMillisecondsPerSample: function() {
       return context.loaded ? context.millisecondsSample : notReady();
     },
     setSmoothing: function(smooth) {

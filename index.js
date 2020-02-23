@@ -572,7 +572,7 @@ DJI_SRT_Parser.prototype.createMGJSON = function(name = '') {
   return mgJSONContent;
 };
 
-DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
+DJI_SRT_Parser.prototype.createGeoJSON = function(raw, waypoints) {
   function GeoJSONExtract(obj, raw) {
     let extractProps = function(childObj, pre) {
       let results = [];
@@ -655,7 +655,12 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
     features: []
   };
   let array = raw ? this.rawMetadata : this.metadata.packets;
-  array.forEach(pck => GeoJSONContent.features.push(GeoJSONExtract(pck, raw)));
+
+  const features = [];
+  array.forEach(pck => features.push(GeoJSONExtract(pck, raw)));
+  if (waypoints) {
+    GeoJSONContent.features = features;
+  }
 
   let createLinestring = function(features) {
     let result = {
@@ -698,7 +703,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(raw) {
     return result;
   };
 
-  GeoJSONContent.features.push(createLinestring(GeoJSONContent.features));
+  GeoJSONContent.features.push(createLinestring(features));
 
   if (!GeoJSONContent.features) {
     console.log('Error creating GeoJSON');
@@ -782,8 +787,10 @@ function toExport(context, file, fileName, preparedData) {
         ? context.createMGJSON(context.fileName)
         : notReady();
     },
-    toGeoJSON: function(raw) {
-      return context.loaded ? context.createGeoJSON(raw) : notReady();
+    toGeoJSON: function(raw, waypoints) {
+      return context.loaded
+        ? context.createGeoJSON(raw, waypoints)
+        : notReady();
     },
     getFileName: function() {
       return context.loaded ? context.fileName : notReady();

@@ -591,15 +591,16 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(
     let extractCoordinates = function(coordsObj) {
       let coordResult = [];
       if (raw) {
-        if (coordsObj.length >= 0 && coordsObj[0])
-          coordResult[0] = coordsObj[0];
-        if (coordsObj.length >= 1 && coordsObj[1])
-          coordResult[1] = coordsObj[1];
+        if (coordsObj.GPS.length >= 0 && coordsObj.GPS[0])
+          coordResult[0] = coordsObj.GPS[0];
+        if (coordsObj.GPS.length >= 1 && coordsObj.GPS[1])
+          coordResult[1] = coordsObj.GPS[1];
       } else {
-        if (coordsObj.LONGITUDE) coordResult[0] = coordsObj.LONGITUDE;
-        if (coordsObj.LATITUDE) coordResult[1] = coordsObj.LATITUDE;
-        if (getElevation(coordsObj) != null)
+        if (coordsObj.GPS.LONGITUDE) coordResult[0] = coordsObj.GPS.LONGITUDE;
+        if (coordsObj.GPS.LATITUDE) coordResult[1] = coordsObj.GPS.LATITUDE;
+        if (getElevation(coordsObj) != null) {
           coordResult[2] = getElevation(coordsObj) + elevationOffset;
+        }
       }
       return coordResult;
     };
@@ -616,7 +617,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function(
       if (elt === 'DATE') {
         result.properties.timestamp = obj[elt];
       } else if (elt === 'GPS') {
-        result.geometry.coordinates = extractCoordinates(obj[elt]);
+        result.geometry.coordinates = extractCoordinates(obj);
       } else if (typeof obj[elt] === 'object' && obj[elt] != null) {
         let children = extractProps(obj[elt], elt);
         children.forEach(child => {

@@ -27,15 +27,16 @@ function createDataOutlineChildText(matchName, displayName, value) {
 }
 
 //Choose best value for altitude
-function chooseAlt(pckt) {
+function chooseAlt(pckt, elevationOffset) {
+  let alt = 0;
   if (pckt.BAROMETER != undefined) {
-    return pckt.BAROMETER;
+    alt = pckt.BAROMETER;
   } else if (pckt.HB != undefined) {
-    return pckt.HB;
+    alt = pckt.HB;
   } else if (pckt.HS != undefined) {
-    return pckt.HS;
+    alt = pckt.HS;
   }
-  return 0;
+  return elevationOffset + alt;
 }
 
 //Build the style that After Effects needs for dynamic values: numbers, arrays of numbers (axes) or strings (date)
@@ -115,14 +116,7 @@ function convertSamples(data, elevationOffset) {
   let dataDynamicSamples = [];
 
   //Start deducing streams here
-  function addOneStream({
-    streamName,
-    units,
-    sampleSetID,
-    type,
-    extract,
-    elevationOffset
-  }) {
+  function addOneStream({ streamName, units, sampleSetID, type, extract }) {
     try {
       if (data && data.length && extract(data[0]) != null) {
         //Prepare sample set
@@ -259,14 +253,10 @@ function convertSamples(data, elevationOffset) {
       sampleSetID: `streamGPS`,
       type: 'numberStringArray',
       extract: function(s) {
-        return [
-          s.GPS.LATITUDE,
-          s.GPS.LONGITUDE,
-          chooseAlt(s) + elevationOffset
-        ];
-      },
-      elevationOffset
+        return [s.GPS.LATITUDE, s.GPS.LONGITUDE, chooseAlt(s, elevationOffset)];
+      }
     });
+
     addOneStream({
       streamName: 'SPEED: (2D,3D.)',
       units: ['km/h', 'km/h'],

@@ -482,7 +482,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       if (!isNum(newArr[i].GPS.LONGITUDE))
         newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
       if (newArr[i].GPS.SATELLITES && !isNum(newArr[i].GPS.SATELLITES))
-        ewArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
+        newArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
     }
   }
   for (let i = newArr.length - 2; i >= 0; i--) {

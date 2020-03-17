@@ -258,12 +258,12 @@ function convertSamples(data, elevationOffset) {
     });
 
     addOneStream({
-      streamName: 'SPEED: (2D,3D.)',
-      units: ['km/h', 'km/h'],
+      streamName: 'SPEED: (2D,3D,Vert.)',
+      units: ['km/h', 'km/h', 'km/h'],
       sampleSetID: `streamSPEED`,
       type: 'numberStringArray',
       extract: function(s) {
-        return [s.SPEED.TWOD, s.SPEED.THREED];
+        return [s.SPEED.TWOD, s.SPEED.THREED, s.SPEED.VERTICAL];
       }
     });
     addOneStream({

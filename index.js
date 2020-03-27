@@ -120,6 +120,18 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
   // Forcing srt to have one information line plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
   arr = arr.filter(value => Object.keys(value).length > 1);
 
+  const fixDates = function(arr) {
+    //Fix duplicated dates
+    let computed = JSON.parse(JSON.stringify(arr));
+    computed.forEach((c, i, arr) => {
+      if (i > 0 && i < arr.length - 1 && c.DATE === arr[i + 1].DATE) {
+        const diff = c.DATE - arr[i - 1].DATE;
+        c.DATE = c.DATE - diff / 2;
+      }
+    });
+    return computed;
+  };
+
   let computeSpeed = function(arr) {
     //computes 3 types of speed in km/h
     let computed = JSON.parse(JSON.stringify(arr));
@@ -474,6 +486,10 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
 
   // If there was a time resampled array already created
   let newArr = arr.map(pck => interpretPacket(pck));
+
+  //Fix repeated dates
+  newArr = fixDates(newArr);
+
   for (let i = 1; i < newArr.length; i++) {
     //loop back and forth to fill missing gps data with neighbours
     if (newArr[i].GPS) {

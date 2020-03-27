@@ -30,7 +30,7 @@ test('This sample should contain a Home point', () => {
   });
 });
 test('The average 3D speed should be set', () => {
-  expect(MavicPro.metadata().stats.SPEED.THREED.avg).toBe(17.67834309966437);
+  expect(MavicPro.metadata().stats.SPEED.THREED.avg).toBe(17.781097679002578);
 });
 test('The max altitude should be readable from the barometer', () => {
   expect(MavicPro.metadata().stats.BAROMETER.max).toBe(118.7);
@@ -63,7 +63,7 @@ test('Old Format result should contain metadata', () => {
   expect(Old_Format.metadata()).toBeDefined();
 });
 test('The average 3D speed should be set in the old format', () => {
-  expect(Old_Format.metadata().stats.SPEED.THREED.avg).toBe(17.67834309966437);
+  expect(Old_Format.metadata().stats.SPEED.THREED.avg).toBe(17.781097679002578);
 });
 test('The max altitude should be readable from the HB field', () => {
   expect(Old_Format.metadata().stats.HB.max).toBe(118.7);
@@ -81,7 +81,7 @@ test('Mavic 2 Format result should contain metadata', () => {
   expect(Mavic_2.metadata()).toBeDefined();
 });
 test('The average 2D speed should be set in the Mavic 2 format', () => {
-  expect(Mavic_2.metadata().stats.SPEED.TWOD.avg).toBe(15.366779087834761);
+  expect(Mavic_2.metadata().stats.SPEED.TWOD.avg).toBe(15.469517716020455);
 });
 test('We should be able to read the aperture in the Mavic 2 format', () => {
   expect(Mavic_2.metadata().packets[0].FNUM).toBe(2.2);
@@ -96,7 +96,7 @@ test('Buggy Format result should contain metadata', () => {
   expect(Buggy.metadata()).toBeDefined();
 });
 test('The average 3D speed should be set in the buggy format', () => {
-  expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(10.126509453153785);
+  expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(10.194917607142946);
 });
 test('The max satellites should be readable from the SATELLITES field', () => {
   expect(Buggy.metadata().stats.GPS.SATELLITES.max).toBe(18);

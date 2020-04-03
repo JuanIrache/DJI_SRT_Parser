@@ -26,20 +26,20 @@ test('Date should be present', () => {
 test('This sample should contain a Home point', () => {
   expect(MavicPro.metadata().stats.HOME[0]).toEqual({
     LATITUDE: -20.2532,
-    LONGITUDE: 149.0251
+    LONGITUDE: 149.0251,
   });
 });
 test('The average 3D speed should be set', () => {
-  expect(MavicPro.metadata().stats.SPEED.THREED.avg).toBe(21.639140507206356);
+  expect(MavicPro.metadata().stats.SPEED.THREED.avg).toBe(21.56914922116961);
 });
 test('The max altitude should be readable from the barometer', () => {
-  expect(MavicPro.metadata().stats.BAROMETER.max).toBe(118.7);
+  expect(MavicPro.metadata().stats.BAROMETER.max).toBe(118.65000000000002);
 });
 test('The duration should be a readable number', () => {
   expect(MavicPro.metadata().stats.DURATION).toBe(468000);
 });
 test('We should get the flight distance', () => {
-  expect(MavicPro.metadata().stats.DISTANCE).toBe(2813.7409936548734);
+  expect(MavicPro.metadata().stats.DISTANCE).toBe(2804.6421264700957);
 });
 test('We should be able to read the aperture', () => {
   expect(MavicPro.metadata().packets[0].FNUM).toBe(2.2);
@@ -63,10 +63,10 @@ test('Old Format result should contain metadata', () => {
   expect(Old_Format.metadata()).toBeDefined();
 });
 test('The average 3D speed should be set in the old format', () => {
-  expect(Old_Format.metadata().stats.SPEED.THREED.avg).toBe(21.63914050720636);
+  expect(Old_Format.metadata().stats.SPEED.THREED.avg).toBe(21.56914922116961);
 });
 test('The max altitude should be readable from the HB field', () => {
-  expect(Old_Format.metadata().stats.HB.max).toBe(118.7);
+  expect(Old_Format.metadata().stats.HB.max).toBe(118.65000000000002);
 });
 test('We should be able to read the aperture in the old format', () => {
   expect(Old_Format.metadata().packets[0].FNUM).toBe(2.8);
@@ -111,7 +111,7 @@ test('Buggy Format result should contain metadata', () => {
   expect(Buggy.metadata()).toBeDefined();
 });
 test('The average 3D speed should be set in the buggy format', () => {
-  expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(13.453024023265257);
+  expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(13.40770963200714);
 });
 test('The max satellites should be readable from the SATELLITES field', () => {
   expect(Buggy.metadata().stats.GPS.SATELLITES.max).toBe(18);
@@ -139,7 +139,7 @@ test('p4 RTK Format result should contain metadata', () => {
   expect(p4rtk.metadata()).toBeDefined();
 });
 test('The max satellites should be readable from the SATELLITES field', () => {
-  expect(p4rtk.metadata().stats.GPS.SATELLITES.max).toBe(14.875);
+  expect(p4rtk.metadata().stats.GPS.SATELLITES.max).toBe(15);
 });
 test('We should be able to read the aperture in the p4p rtk format', () => {
   expect(p4rtk.metadata().packets[0].FNUM).toBe(5.6);

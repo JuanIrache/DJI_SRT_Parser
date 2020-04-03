@@ -181,7 +181,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         distanceVert /= 1000;
         let distance3D = Math.hypot(distance2D, distanceVert);
         let time = 1; //Fallback time, 1 second
-        if (pck.DATE) {
+        if (pck.DIFFTIME != null) {
+          time = pck.DIFFTIME / 1000;
+        } else if (pck.DATE) {
           time =
             (new Date(pck.DATE).getTime() -
               new Date(cmp[i - 1].DATE).getTime()) /

@@ -168,8 +168,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       };
       result.DISTANCE = 0;
       if (i > 0) {
-        let origin2d = [cmp[i - 1].GPS.LATITUDE, cmp[i - 1].GPS.LATITUDE];
-        let destin2d = [pck.GPS.LATITUDE, pck.GPS.LATITUDE];
+        let origin2d = [cmp[i - 1].GPS.LATITUDE, cmp[i - 1].GPS.LONGITUDE];
+        let destin2d = [pck.GPS.LATITUDE, pck.GPS.LONGITUDE];
         let distance2D = measure(
           origin2d[0],
           origin2d[1],

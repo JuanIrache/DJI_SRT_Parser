@@ -453,10 +453,11 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     for (let i = 0; i < arr.length; i++) {
       let start = parseInt(i - amount);
       let end = parseInt(i + amount);
+      const elevKey = getElevationKey(arr[i]);
       let sums = {
         LATITUDE: 0,
         LONGITUDE: 0,
-        SATELLITES: 0,
+        [elevKey]: 0,
       };
       let latSkips = 0;
       let lonSkips = 0;
@@ -473,15 +474,15 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         } else {
           lonSkips++;
         }
-        if (isNum(arr[k].GPS.SATELLITES)) {
-          sums.SATELLITES += arr[k].GPS.SATELLITES;
+        if (isNum(arr[k][elevKey])) {
+          sums[elevKey] += arr[k][elevKey];
         } else {
           altSkips++;
         }
       }
       smoothArr[i].GPS.LATITUDE = sums.LATITUDE / (amount * 2 - latSkips);
       smoothArr[i].GPS.LONGITUDE = sums.LONGITUDE / (amount * 2 - lonSkips);
-      smoothArr[i].GPS.SATELLITES = sums.SATELLITES / (amount * 2 - altSkips);
+      smoothArr[i][elevKey] = sums[elevKey] / (amount * 2 - altSkips);
     }
     return smoothArr;
   };
@@ -534,6 +535,20 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     stats: stats,
   };
 };
+
+function getElevationKey(src) {
+  //Elevation has different names on each format
+  if (src.ALTITUDE != undefined) {
+    return 'ALTITUDE';
+  } else if (src.BAROMETER != undefined) {
+    return 'BAROMETER';
+  } else if (src.HB != undefined) {
+    return 'HB';
+  } else if (src.HS != undefined) {
+    return 'HS';
+  }
+  return 'ALTITUDE';
+}
 
 function getElevation(src) {
   //Elevation has different names on each format

@@ -168,8 +168,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
       };
       result.DISTANCE = 0;
       if (i > 0) {
-        let origin2d = [cmp[i - 1].GPS.LATITUDE, cmp[i - 1].GPS.LATITUDE];
-        let destin2d = [pck.GPS.LATITUDE, pck.GPS.LATITUDE];
+        let origin2d = [cmp[i - 1].GPS.LATITUDE, cmp[i - 1].GPS.LONGITUDE];
+        let destin2d = [pck.GPS.LATITUDE, pck.GPS.LONGITUDE];
         let distance2D = measure(
           origin2d[0],
           origin2d[1],
@@ -181,7 +181,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
         distanceVert /= 1000;
         let distance3D = Math.hypot(distance2D, distanceVert);
         let time = 1; //Fallback time, 1 second
-        if (pck.DATE) {
+        if (pck.DIFFTIME != null) {
+          time = pck.DIFFTIME / 1000;
+        } else if (pck.DATE) {
           time =
             (new Date(pck.DATE).getTime() -
               new Date(cmp[i - 1].DATE).getTime()) /
@@ -534,8 +536,10 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
 };
 
 function getElevation(src) {
-  //GPS elevation data is almost useless, so we replace with barometer if available
-  if (src.BAROMETER != undefined) {
+  //Elevation has different names on each format
+  if (src.ALTITUDE != undefined) {
+    return src.ALTITUDE;
+  } else if (src.BAROMETER != undefined) {
     return src.BAROMETER;
   } else if (src.HB != undefined) {
     return src.HB;

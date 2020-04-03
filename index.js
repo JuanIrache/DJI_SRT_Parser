@@ -535,7 +535,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function(arr, smooth) {
 
 function getElevation(src) {
   //GPS elevation data is almost useless, so we replace with barometer if available
-  if (src.BAROMETER != undefined) {
+  if (src.ALTITUDE != undefined) {
+    return src.ALTITUDE;
+  } else if (src.BAROMETER != undefined) {
     return src.BAROMETER;
   } else if (src.HB != undefined) {
     return src.HB;

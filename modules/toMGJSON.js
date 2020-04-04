@@ -18,18 +18,20 @@ function createDataOutlineChildText(matchName, displayName, value) {
       paddedStringProperties: {
         maxLen: value.length,
         maxDigitsInStrLength: value.length.toString().length,
-        eventMarkerB: false
-      }
+        eventMarkerB: false,
+      },
     },
     matchName,
-    value
+    value,
   };
 }
 
 //Choose best value for altitude
 function chooseAlt(pckt, elevationOffset) {
   let alt = 0;
-  if (pckt.BAROMETER != undefined) {
+  if (pckt.ALTITUDE != undefined) {
+    alt = pckt.ALTITUDE;
+  } else if (pckt.BAROMETER != undefined) {
     alt = pckt.BAROMETER;
   } else if (pckt.HB != undefined) {
     alt = pckt.HB;

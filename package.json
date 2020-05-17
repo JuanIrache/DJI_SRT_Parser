@@ -10,7 +10,8 @@
   "description": "Parses and interprets DJI's drones SRT metadata",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watch"
+    "test-watch": "jest --watch",
+    "test": "jest"
   },
   "repository": {
     "type": "git",

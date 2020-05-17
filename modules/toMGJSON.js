@@ -338,7 +338,7 @@ module.exports = function(data, name = '', elevationOffset) {
       createDataOutlineChildText(
         'filename',
         'File name',
-        name.replace(/\.srt$/i, '')
+        name.replace(/\.srt/ig, '') // Global, for concatenated filenames
       ),
       ...converted.dataOutline
     ],

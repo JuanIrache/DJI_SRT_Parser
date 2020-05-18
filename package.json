@@ -11,7 +11,8 @@
   "main": "index.js",
   "scripts": {
     "test-watch": "jest --watch",
-    "test": "jest"
+    "test-exports": "jest exports.test.js",
+    "test": "jest index.test.js"
   },
   "repository": {
     "type": "git",

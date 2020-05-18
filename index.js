@@ -7,10 +7,15 @@ function DJI_SRT_Parser() {
   this.smoothened = 0;
   this.millisecondsSample = 0;
   this.loaded = false;
-  this.smoothArr = {};
+  this.isMultiple = false;
+  this.customProperties = {};
 }
-
 DJI_SRT_Parser.prototype.srtToObject = function (srt) {
+
+  const maybeParseNumbers = (d) => {
+    return isNum(d) ? Number(d) : d;
+  }
+
   //convert SRT strings file into array of objects
   let converted = [];
   const timecodeRegEx = /(\d{2}:\d{2}:\d{2},\d{3})\s-->\s/;
@@ -21,27 +26,26 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
   const accurateDateRegex = /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
   //Split difficult Phantom4Pro format
   srt = srt
-    .replace(/.*-->.*/g, (match) => match.replace(/,/g, ':separator:'))
-    .replace(/\(([^\)]+)\)/g, (match) =>
-      match.replace(/,/g, ':separator:').replace(/\s/g, '')
-    )
+    .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))
+    .replace(/\(([^\)]+)\)/g, match => match.replace(/,/g, ':separator:').replace(/\s/g, ''))
     .replace(/,/g, '')
-    .replace(/Â|°|(B0)/g, '') // For P4RTK: parasite characters emerged after imported using "express-fileupload" and the actual "readfile" function.
+    .replace(/Â|°|(B0)/g, '')
     .replace(/\:separator\:/g, ',');
   //Split others
   srt = srt
     .split(/[\n\r]/)
-    .map((l) => l.trim())
-    .map((l) =>
+    .map(l => l.trim())
+    .map(l =>
       l
-        .replace(/([a-zA-Z])\s(\d)/g, '$1:$2')
+        .replace(/([a-zA-Z])\s([-\d])/g, '$1:$2')
         .replace(/([a-zA-Z])\s\(/g, '$1(')
         .replace(/([a-zA-Z])\.([a-zA-Z])/g, '$1_$2')
         .replace(/([a-zA-Z])\/(\d)/g, '$1:$2')
     )
-    .filter((l) => l.length);
+    .filter(l => l.length);
 
-  srt.forEach((line) => {
+    
+  srt.forEach(line => {
     let match;
     if (packetRegEx.test(line)) {
       //new packet
@@ -50,31 +54,28 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
       converted[converted.length - 1].TIMECODE = match[1];
     } else {
       while ((match = arrayRegEx.exec(line))) {
-        converted[converted.length - 1][match[1]] = match[2].split(',');
+        converted[converted.length - 1][match[1]] = match[2].split(',').map( d => maybeParseNumbers(d));
       }
       while ((match = valueRegEx.exec(line))) {
-        converted[converted.length - 1][match[1]] = match[2];
+        converted[converted.length - 1][match[1]] = maybeParseNumbers(match[2]);
       }
       if ((match = accurateDateRegex.exec(line))) {
-        converted[converted.length - 1].DATE =
-          match[1] + ':' + match[2] + '.' + match[3];
+        converted[converted.length - 1].DATE = match[1] + ':' + match[2] + '.' + match[3];
       } else if ((match = dateRegEx.exec(line))) {
         converted[converted.length - 1].DATE = match[0];
       }
     }
   });
-
   if (converted.length < 1) {
-    console.error('Error converting object');
+    console.log('Error converting object');
     return null;
   }
-
   return converted;
 };
 
-DJI_SRT_Parser.prototype.millisecondsPerSample = function (milliseconds) {
+DJI_SRT_Parser.prototype.millisecondsPerSample = function (metadata, milliseconds) {
   // get the smoothed array already saved and interpreted
-  let newArr = this.smoothArr;
+  let newArr = metadata.packets;
 
   let millisecondsPerSampleTIMECODE = function (amount) {
     let lastTimecode = 0;
@@ -151,9 +152,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       var a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos((lat1 * Math.PI) / 180) *
-          Math.cos((lat2 * Math.PI) / 180) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
       var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       var d = R * c;
       return d * 1000; // meters
@@ -371,12 +372,12 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       } else if (key.toUpperCase() === 'EV') {
         interpretedI = eval(datum);
       } else if (key.toUpperCase() === 'SHUTTER') {
-        interpretedI = Number(datum.replace('1/', ''));
+        interpretedI = isNum(datum) ? Number(datum) : Number(datum.replace('1/', ''));
       } else if (key.toUpperCase() === 'FNUM' && Number(datum) > 50) {
         //convert f numbers represented like 280
         interpretedI = Number(datum) / 100;
       } else {
-        interpretedI = Number(datum.replace(/[a-zA-Z]/g, ''));
+        interpretedI = isNum(datum) ? Number(datum) : Number(datum.replace(/[a-zA-Z]/g, ''));
       }
       if (
         interpretedI.constructor === Object &&
@@ -527,13 +528,23 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     console.error('Error intrerpreting metadata');
     return null;
   }
-  // Store the array for later
-  this.smoothArr = newArr;
 
   return {
     packets: newArr,
     stats: stats,
   };
+};
+
+DJI_SRT_Parser.prototype.setCustomProperties = function (
+  customProps = false
+) {
+
+  // If no value is passed, clean the properties
+  if (!customProps) return this.customProperties = {};
+
+  if (typeof customProps === 'object') return this.customProperties = { ...this.customProperties, ...customProps };
+
+  return false;
 };
 
 function getElevationKey(src) {
@@ -565,31 +576,92 @@ function getElevation(src) {
 }
 
 DJI_SRT_Parser.prototype.createCSV = function (raw) {
-  let csvExtract = function (obj, pre, val) {
-    let prefix = pre ? pre + '_' : '';
-    let results = [];
-    for (let elt in obj) {
-      if (typeof obj[elt] === 'object' && obj[elt] != null) {
-        let children = csvExtract(obj[elt], prefix + elt, val);
-        children.forEach((child) => results.push(child));
-      } else if (val) {
-        results.push(JSON.stringify(obj[elt]));
-      } else {
-        results.push(prefix + elt);
-      }
+
+  let context = this;
+  let columnHeads = [], rows = [];
+
+  // Source: https://stackoverflow.com/questions/34513964/how-to-convert-this-nested-object-into-a-flat-object
+  const flatObject = (input) => {
+    function flat(res, key, val, pre = '') {
+      const prefix = [pre, key].filter(v => v).join('.');
+      return typeof val === 'object'
+        ? Object.keys(val).reduce((prev, curr) => flat(prev, curr, val[curr], prefix), res)
+        : Object.assign(res, { [prefix]: val });
     }
-    return results.length ? results : null;
-  };
-  let rows = [];
-  let array = raw ? this.rawMetadata : this.metadata.packets;
-  rows.push(csvExtract(array[0]));
-  array.forEach((pck) => rows.push(csvExtract(pck, '', true)));
+
+    return Object.keys(input).reduce((prev, curr) => flat(prev, curr, input[curr]), {});
+  }
+
+  const prepareColumnHeads = (obj) => {
+    obj = flatObject(obj); // Flat arrays and objects
+    obj = { ...obj, ...context.customProperties, ...{ NAME: 1 } };
+    columnHeads = Object.keys(obj);
+    return columnHeads;
+  }
+
+  const populateData = (array, fileName) => {
+
+    let dataArr = [];
+
+    array.forEach(arr => {
+
+      let obj = flatObject(arr);
+      let results = [];
+
+      // Double quotes on every field. It's  always neccesary?
+      columnHeads.forEach(column => {
+
+        if (obj.hasOwnProperty(column))
+          results.push(`"${obj[column]}"`);
+
+        else if (context.customProperties[column]) // Custom properties
+          results.push(`"${context.customProperties[column]}"`);
+
+        else if ('NAME' === column)
+          results.push(`"${cleanFileName(fileName)}"`);
+
+        else results.push(" "); // Fill empty columns
+
+      })
+      dataArr.push(results);
+    })
+    return dataArr;
+  }
+
+
+  if (context.isMultiple) {
+
+    let array = raw
+      ? Object.values(this.rawMetadata)
+      : Object.keys(this.metadata).map(key => this.metadata[key].packets);
+
+    // First search for all the different headers in all the files
+    let mergedFirstElements;
+    array.forEach(arr => {
+      mergedFirstElements = { ...mergedFirstElements, ...arr[0] };
+    })
+
+    rows = [prepareColumnHeads(mergedFirstElements)];
+
+    array.forEach((arr, key) => {
+      rows = [...rows, ...populateData(arr, context.fileName[key])];
+    })
+
+  } else {
+
+    let array = raw ? this.rawMetadata : this.metadata.packets;
+    rows = [prepareColumnHeads(array[0])];
+    rows = [...rows, ...populateData(array, context.fileName)];
+
+  }
+
   if (rows.length < 1) return null;
-  let csvContent;
-  csvContent = rows.reduce((acc, rowArray) => {
+
+  let csvContent = rows.reduce((acc, rowArray) => {
     let row = rowArray.join(',');
     return acc + row + '\r\n';
   }, '');
+
   if (!csvContent) {
     console.error('Error creating CSV');
     return null;
@@ -601,7 +673,15 @@ DJI_SRT_Parser.prototype.createMGJSON = function (
   name = '',
   elevationOffset = 0
 ) {
-  const mgJSONContent = toMGJSON(this.metadata.packets, name, elevationOffset);
+
+  let packets = (this.isMultiple)
+
+    ? Object.keys(this.metadata).map(key => this.metadata[key].packets).reduce((acc, val) => acc.concat(val), []) // Merge everything
+    : this.metadata.packets;
+
+  name = (this.isMultiple && Array.isArray(name)) ? name.join('-') : name;
+
+  const mgJSONContent = toMGJSON(packets, name, elevationOffset);
   return mgJSONContent;
 };
 
@@ -610,6 +690,8 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
   waypoints,
   elevationOffset = 0
 ) {
+
+  let context = this;
   function GeoJSONExtract(obj, raw) {
     let extractProps = function (childObj, pre) {
       let results = [];
@@ -645,7 +727,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
         type: 'Point',
         coordinates: [],
       },
-      properties: {},
+      properties: { ...context.customProperties },
     };
 
     for (let elt in obj) {
@@ -662,7 +744,6 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
         result.properties[elt] = obj[elt];
       }
     }
-
     return result;
   }
   let GeoJSONContent = {
@@ -675,56 +756,76 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
     },
     features: [],
   };
-  let array = raw ? this.rawMetadata : this.metadata.packets;
 
-  const features = [];
-  array.forEach((pck) => features.push(GeoJSONExtract(pck, raw)));
-  if (waypoints) {
-    GeoJSONContent.features = features;
-  }
+  function preProcess(array, fileName) {
 
-  let createLinestring = function (features) {
-    let result = {
-      type: 'Feature',
-      properties: {
-        source: 'dji-srt-parser',
-        timestamp: [],
-      },
-      geometry: {
-        type: 'LineString',
-        coordinates: [],
-      },
-    };
+    let features = [];
 
-    let props = features[0].properties;
-    for (let prop in props) {
-      if (
-        ![
-          'DATE',
-          'TIMECODE',
-          'GPS',
-          'timestamp',
-          'BAROMETER',
-          'DISTANCE',
-          'SPEED_THREED',
-          'SPEED_TWOD',
-          'SPEED_VERTICAL',
-          'HB',
-          'HS',
-        ].includes(prop)
-      ) {
-        result.properties[prop] = props[prop];
-      }
+    array.forEach((pck) => features.push(GeoJSONExtract(pck, raw)));
+
+    if (waypoints) {
+      GeoJSONContent.features = [...GeoJSONContent.features, ...features];
     }
 
-    features.forEach((feature) => {
-      result.geometry.coordinates.push(feature.geometry.coordinates);
-      result.properties.timestamp.push(feature.properties.timestamp);
-    });
-    return result;
-  };
+    let createLinestring = function (features) {
 
-  GeoJSONContent.features.push(createLinestring(features));
+      let result = {
+        type: 'Feature',
+        properties: {
+          source: 'dji-srt-parser',
+          timestamp: [],
+          name: cleanFileName(fileName),
+          ...this.customProperties
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: [],
+        },
+      };
+
+      let props = features[0].properties;
+      for (let prop in props) {
+        if (
+          ![
+            'DATE',
+            'TIMECODE',
+            'GPS',
+            'timestamp',
+            'BAROMETER',
+            'DISTANCE',
+            'SPEED_THREED',
+            'SPEED_TWOD',
+            'SPEED_VERTICAL',
+            'HB',
+            'HS',
+          ].includes(prop)
+        ) {
+          result.properties[prop] = props[prop];
+        }
+      }
+
+      features.forEach((feature) => {
+        result.geometry.coordinates.push(feature.geometry.coordinates);
+        result.properties.timestamp.push(feature.properties.timestamp);
+      });
+      return result;
+    };
+
+    GeoJSONContent.features.push(createLinestring(features));
+
+  }
+
+
+  if (context.isMultiple) {
+
+    context.fileName.forEach(key => {
+      if (raw) preProcess(this.rawMetadata[key], key);
+      else preProcess(this.metadata[key].packets, key);
+    })
+
+  } else {
+    preProcess(raw ? this.rawMetadata : this.metadata.packets, context.fileName);
+  }
 
   if (!GeoJSONContent.features) {
     console.error('Error creating GeoJSON');
@@ -734,10 +835,12 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
   return JSON.stringify(GeoJSONContent);
 };
 
-DJI_SRT_Parser.prototype.loadFile = function (data, fileName, preparedData) {
+DJI_SRT_Parser.prototype.loadFile = function (data, fileName, isPreparedData) {
+
   let context = this;
   this.fileName = fileName;
   this.loaded = false;
+
   let decode = function (d) {
     if (typeof d === 'string' && d.split(',')[0].includes('base64')) {
       return atob(d.split(',')[1]);
@@ -745,18 +848,79 @@ DJI_SRT_Parser.prototype.loadFile = function (data, fileName, preparedData) {
       return d;
     }
   };
-  this.flow(decode(data), preparedData);
+
+  let decoded;
+  if (Array.isArray(data) && Array.isArray(fileName)) {
+    context.isMultiple = true;
+    decoded = data.map(d => decode(d));
+  } else {
+    decoded = decode(data);
+  }
+
+  this.flow(decoded, isPreparedData);
+
 };
 
-DJI_SRT_Parser.prototype.flow = function (data, preparedData) {
-  if (preparedData) {
-    this.rawMetadata = JSON.parse(data);
-  } else {
-    this.rawMetadata = this.srtToObject(data);
+
+DJI_SRT_Parser.prototype.getMetadata = function (fileName = null) {
+
+  if (fileName && this.isMultiple) return this.metadata[fileName];
+
+  return this.metadata;
+
+}
+
+DJI_SRT_Parser.prototype.getRawMetadata = function (fileName = null) {
+
+  if (fileName && this.isMultiple) return this.rawMetadata[fileName];
+
+  return this.rawMetadata;
+
+}
+
+DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
+
+  this.rawMetadata = {};
+
+  const maybeParse = (data) => {
+    try {
+      JSON.parse(data);
+    } catch (e) {
+      return data;
+    }
+    return JSON.parse(data);
   }
-  this.metadata = this.interpretMetadata(this.rawMetadata);
+
+  const getRaw = (data) => {
+    return (isPreparedData) ? maybeParse(data) : this.srtToObject(data);
+  }
+
+  if (this.isMultiple) {
+
+    data.forEach((d, key) => {
+
+      let rawMetadata = getRaw(d);
+
+      let fileName = this.fileName[key];
+
+      this.rawMetadata[fileName] = rawMetadata;
+      this.metadata[fileName] = this.interpretMetadata(rawMetadata);
+
+    })
+
+  } else {
+
+    this.rawMetadata = getRaw(data);
+    this.metadata = this.interpretMetadata(this.rawMetadata);
+
+  }
+
   this.loaded = true;
 };
+
+function cleanFileName(fileName) {
+  return fileName.replace(/\.[^/.]+$/, ""); // Remove file extension
+}
 
 function notReady() {
   console.error('Data not ready');
@@ -767,8 +931,9 @@ function isNum(val) {
   return /^[-\+\d.,]+$/.test(val);
 }
 
-function toExport(context, file, fileName, preparedData) {
-  context.loadFile(file, fileName, preparedData);
+function toExport(context, file, fileName, isPreparedData) {
+
+  context.loadFile(file, fileName, isPreparedData);
 
   return {
     getSmoothing: function () {
@@ -778,27 +943,48 @@ function toExport(context, file, fileName, preparedData) {
       return context.loaded ? context.millisecondsSample : notReady();
     },
     setSmoothing: function (smooth) {
-      if (context.loaded) {
-        context.metadata = context.interpretMetadata(
-          context.rawMetadata,
-          smooth
-        );
-      } else {
-        notReady();
+      if (!context.loaded) return notReady();
+
+      if (context.isMultiple) {
+        Object.keys(context.rawMetadata).forEach(key => {
+          context.metadata[key] = context.interpretMetadata(
+            context.rawMetadata[key],
+            smooth
+          );
+        })
+        return context.metadata;
       }
+
+      return context.metadata = context.interpretMetadata(
+        context.rawMetadata,
+        smooth
+      );
+
     },
     setMillisecondsPerSample: function (milliseconds) {
-      if (context.loaded) {
-        context.metadata.packets = context.millisecondsPerSample(milliseconds);
-      } else {
-        notReady();
+      if (!context.loaded) return notReady();
+
+      if (context.isMultiple) {
+        Object.keys(context.metadata).forEach(key => {
+          context.metadata[key].packets = context.millisecondsPerSample(
+            context.metadata[key],
+            milliseconds
+          );
+        })
+        return context.metadata.packets;
       }
+
+      return context.metadata.packets = context.millisecondsPerSample(
+        context.metadata,
+        milliseconds
+      );
+
     },
-    rawMetadata: function () {
-      return context.loaded ? context.rawMetadata : notReady();
+    rawMetadata: function (fileName) {
+      return context.loaded ? context.getRawMetadata(fileName) : notReady();
     },
-    metadata: function () {
-      return context.loaded ? context.metadata : notReady();
+    metadata: function (fileName) {
+      return context.loaded ? context.getMetadata(fileName) : notReady();
     },
     toCSV: function (raw) {
       return context.loaded ? context.createCSV(raw) : notReady();
@@ -816,13 +1002,21 @@ function toExport(context, file, fileName, preparedData) {
     getFileName: function () {
       return context.loaded ? context.fileName : notReady();
     },
+    setProperties: function (customProps) {
+      return context.loaded ? context.setCustomProperties(customProps) : notReady();
+    }
   };
 }
 
-function create_DJI_SRT_Parser(file, fileName, preparedData) {
+/**
+ * @param {string | array} file - The loaded data in a string (or array of strings)
+ * @param {string | array} fileName - The fileName/s in a string (or array of strings)
+ * @param {boolean} [isPreparedData] - It's a custom GeoJSON that was passed in file?
+ */
+function create_DJI_SRT_Parser(file, fileName, isPreparedData) {
   try {
-    var instance = new DJI_SRT_Parser();
-    return toExport(instance, file, fileName, preparedData);
+    const instance = new DJI_SRT_Parser();
+    return toExport(instance, file, fileName, isPreparedData);
   } catch (err) {
     console.error(err);
     return null;

@@ -1,8 +1,8 @@
-const fs = require('fs');
-const OUTPUTFOLDER = './samples/processed_files/'; // This must be in "watchPathIgnorePatterns" in package.json, to prevent a infinite loop in Jest using --watch.
+
 let preProcess;
 
 function preload(file) {
+  const fs = require('fs');
   let data = fs.readFileSync(file);
   return data.toString();
 }
@@ -183,15 +183,11 @@ let data_p4_rtk2 = preload(`./samples/p4_rtk.SRT`);
 let p4_rtk2 = DJISRTParser(data_p4_rtk2, 'p4_rtk.SRT');
 
 test('Single file to CSV. Some "V_S" have negative values', () => {
-  preProcess = p4_rtk2.toCSV();
-  expect(preProcess.length).toBe(15911);
-  fs.writeFile(OUTPUTFOLDER + 'p4_rtk2.csv', preProcess, err => expect(err).toBeNull());
+  expect(p4_rtk2.toCSV().length).toBe(15911);
 });
 
 test('Single file to CSV, rawMetadata enabled', () => {
-  preProcess = p4_rtk2.toCSV(true);
-  expect(preProcess.length).toBe(10238);
-  fs.writeFile(OUTPUTFOLDER + 'p4_rtk2_RawMeta.csv', preProcess, err => expect(err).toBeNull());
+  expect(p4_rtk2.toCSV(true).length).toBe(10238);
 });
 
 test('Single file to GeoJSON with waypoints', () => {
@@ -201,7 +197,6 @@ test('Single file to GeoJSON with waypoints', () => {
   let coordinate = JSON.parse(preProcess).features[0].geometry.coordinates[0];
   expect(typeof coordinate).toBe('number'); // Very important, coordinates must be numbers
 
-  fs.writeFile(OUTPUTFOLDER + 'p4_rtk2.json', preProcess, err => expect(err).toBeNull());
 });
 
 test('Single file to GeoJSON with waypoints, rawMetadata enabled', () => {
@@ -211,7 +206,6 @@ test('Single file to GeoJSON with waypoints, rawMetadata enabled', () => {
   let coordinate = JSON.parse(preProcess).features[0].geometry.coordinates[0];
   expect(typeof coordinate).toBe('number'); // Very important, coordinates must be numbers
 
-  fs.writeFile(OUTPUTFOLDER + 'p4_rtk2_RawMeta.json', preProcess, err => expect(err).toBeNull());
 });
 
 // Set custom properties and export
@@ -222,9 +216,7 @@ test('Set custom properties and export', () => {
   expect(mavic_pro_.toCSV().length).toBe(96532);
   mavic_pro_.setProperties({ 'propInt': 123, 'propInt2': 456 });
   mavic_pro_.setProperties({ 'propExtra': 'Prop added in a second instance' })
-  preProcess = mavic_pro_.toCSV();
-  expect(preProcess.length).toBe(118087);
-  fs.writeFile(OUTPUTFOLDER + 'mavic_pro_CustomProperties.csv', preProcess, err => expect(err).toBeNull());
+  expect(mavic_pro_.toCSV().length).toBe(118087);
 
   let geoJSONProps = JSON.parse(mavic_pro_.toGeoJSON(false, true)).features[0].properties;
   expect(geoJSONProps.propInt).toBe(123);
@@ -240,27 +232,19 @@ test('Get multiple files name', () => {
 });
 
 test('Multiple files to CSV', () => {
-  preProcess = multi_mavic_pro_p4_rtk.toCSV();
-  expect(preProcess.length).toBe(121637);
-  fs.writeFile(OUTPUTFOLDER + 'multi_mavic_pro_p4_rtk.csv', preProcess, err => expect(err).toBeNull());
+  expect(multi_mavic_pro_p4_rtk.toCSV().length).toBe(121637);
 });
 
 test('Multiple files to CSV, rawMetadata enabled', () => {
-  preProcess = multi_mavic_pro_p4_rtk.toCSV(true);
   expect(multi_mavic_pro_p4_rtk.toCSV(true).length).toBe(81330);
-  fs.writeFile(OUTPUTFOLDER + 'multi_mavic_pro_p4_rtk_RawMeta.csv', preProcess, err => expect(err).toBeNull());
 });
 
 test('Multiple files to GeoJSON with waypoints', () => {
-  preProcess = multi_mavic_pro_p4_rtk.toGeoJSON(false, true);
-  expect(preProcess.length).toBe(246084);
-  fs.writeFile(OUTPUTFOLDER + 'multi_mavic_pro_p4_rtk.json', preProcess, err => expect(err).toBeNull());
+  expect(multi_mavic_pro_p4_rtk.toGeoJSON(false, true).length).toBe(246084);
 });
 
 test('Multiple files to GeoJSON with waypoints, rawMetadata enabled', () => {
-  preProcess = multi_mavic_pro_p4_rtk.toGeoJSON(true, true);
-  expect(preProcess.length).toBe(154735);
-  fs.writeFile(OUTPUTFOLDER + 'multi_mavic_pro_p4_rtk_RawMeta.json', preProcess, err => expect(err).toBeNull());
+  expect(multi_mavic_pro_p4_rtk.toGeoJSON(true, true).length).toBe(154735);
 });
 
 test('Get metadata from a particular file', () => {
@@ -276,33 +260,17 @@ test('Get rawMetadata from another particular file', () => {
   expect(multi_mavic_pro_p4_rtk.rawMetadata()['p4_rtk.SRT'][0].F_PRY).toBeDefined(); // Method 2
 });
 
-test('Multiple files to MGJSON', () => {
-  fs.writeFile(OUTPUTFOLDER + 'multi_mavic_pro_p4_rtk.mgjson', JSON.stringify(multi_mavic_pro_p4_rtk.toMGJSON()), err => expect(err).toBeNull());
-});
-
 
 test('Set milliseconds on multiple files', () => {
-  preProcess = multi_mavic_pro_p4_rtk.toGeoJSON();
-  expect(JSON.parse(preProcess).features[1].geometry.coordinates.length).toBe(55); // Original coordinates
-
+  expect(JSON.parse(multi_mavic_pro_p4_rtk.toGeoJSON()).features[1].geometry.coordinates.length).toBe(55); // Original coordinates
   multi_mavic_pro_p4_rtk.setMillisecondsPerSample(7000);
-
-  preProcess = multi_mavic_pro_p4_rtk.toGeoJSON();
-  expect(JSON.parse(preProcess).features[1].geometry.coordinates.length).toBe(8); // Reduced coordinates
-
-  fs.writeFile(OUTPUTFOLDER + 'multi_mavic_pro_p4_rtk_MillisecondsPerSample(7000).json', preProcess, err => expect(err).toBeNull());
+  expect(JSON.parse(multi_mavic_pro_p4_rtk.toGeoJSON()).features[1].geometry.coordinates.length).toBe(8); // Reduced coordinates
 
 });
 
 test('Set smoothing on multiple files', () => {
-  preProcess = multi_mavic_pro_p4_rtk.setSmoothing(0);
-  preProcess = multi_mavic_pro_p4_rtk.toGeoJSON()
-  expect(preProcess).toBeDefined();
-  fs.writeFile(OUTPUTFOLDER + 'multi_mavic_pro_p4_rtk_Smoothing(0).json', preProcess, err => expect(err).toBeNull());
-});
-
-test('MGJSON with a single file', () => {
-  fs.writeFile(OUTPUTFOLDER + 'p4_rtk2.mgjson', JSON.stringify(p4_rtk2.toMGJSON()), err => expect(err).toBeNull());
+  multi_mavic_pro_p4_rtk.setSmoothing(0);
+  expect(multi_mavic_pro_p4_rtk.toGeoJSON()).toBeDefined();
 });
 
 

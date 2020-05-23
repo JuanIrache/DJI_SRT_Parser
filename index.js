@@ -823,7 +823,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
 
   if (context.isMultiple) {
 
-    context.fileName.forEach(key => {
+    Object.keys(this.metadata).forEach(key => {
       if (raw) preProcess(this.rawMetadata[key], key);
       else preProcess(this.metadata[key].packets, key);
     })

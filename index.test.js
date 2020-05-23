@@ -289,13 +289,16 @@ test('Loading prepared data as dataString', () => {
 // Incomplete and Empty Data
 let empty = preload(`./samples/broken_empty.SRT`);
 let empty2 = preload(`./samples/broken_empty2.SRT`);
-let brokenData = DJISRTParser([empty, empty2], ['broken_empty.SRT', 'broken_empty2.SRT']);
-test('Loading multiple files with no data', () => {
-  expect(brokenData).toBeNull();
+let incomplete = preload(`./samples/broken_incomplete.SRT`);
+
+let brokenData = DJISRTParser([empty, empty2, incomplete], ['broken_empty.SRT', 'broken_empty2.SRT', 'broken_incomplete.SRT']);
+test('Loading multiple files with no data, or incomplete', () => {
+  expect(brokenData).toBeDefined();
+  expect(brokenData.toGeoJSON()).toBeDefined();
+  expect(brokenData.toCSV()).toBeDefined();
 });
 
-let incomplete = preload(`./samples/broken_incomplete.SRT`);
 let incompleteData = DJISRTParser([incomplete, data], ['broken_incomplete.SRT', 'mavic_pro.SRT']);
-test('Loading multiples files, one with incomplete/break data', () => {
+test('Loading multiples files, one with incomplete/broken data', () => {
   expect(incompleteData.toGeoJSON(false, true).length).toBe(221451);
 });

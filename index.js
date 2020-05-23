@@ -44,7 +44,6 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
     )
     .filter(l => l.length);
 
-    
   srt.forEach(line => {
     let match;
     if (packetRegEx.test(line)) {
@@ -66,7 +65,8 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
       }
     }
   });
-  if (converted.length < 1) {
+  
+  if (converted.length < 1 || Object.entries(converted[0]).length === 0) {
     console.log('Error converting object');
     return null;
   }
@@ -118,8 +118,12 @@ DJI_SRT_Parser.prototype.millisecondsPerSample = function (metadata, millisecond
 };
 
 DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
-  // Forcing srt to have one information line plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
-  arr = arr.filter((value) => Object.keys(value).length > 1);
+
+  // Forcing srt to have two information lines plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
+  arr = arr.filter((value) => Object.keys(value).length > 3);
+
+  // Do not process empty files
+  if (!arr.length) return null;
 
   const fixDates = function (arr) {
     //Fix duplicated dates
@@ -515,7 +519,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   }
   let smoothing = smooth != undefined ? smooth : 4;
   smoothing = smoothing >= 0 ? smoothing : 0;
-  if (newArr[0].GPS) {
+  if (newArr[0] && newArr[0].GPS) {
     if (smoothing !== 0) {
       newArr = smoothenGPS(newArr, smoothing);
     }
@@ -523,11 +527,12 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     newArr = computeSpeed(newArr);
   }
 
-  let stats = computeStats(newArr);
   if (newArr.length < 1) {
     console.error('Error intrerpreting metadata');
     return null;
   }
+
+  let stats = computeStats(newArr);
 
   return {
     packets: newArr,
@@ -882,6 +887,12 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
 
   this.rawMetadata = {};
 
+  let rawMetadata;
+
+  const throwEmptyError = () => {
+    throw 'Not valid data'
+  };
+
   const maybeParse = (data) => {
     try {
       JSON.parse(data);
@@ -899,22 +910,37 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
 
     data.forEach((d, key) => {
 
-      let rawMetadata = getRaw(d);
+      rawMetadata = getRaw(d);
 
-      let fileName = this.fileName[key];
+      if (rawMetadata) {
 
-      this.rawMetadata[fileName] = rawMetadata;
-      this.metadata[fileName] = this.interpretMetadata(rawMetadata);
+        let fileName = this.fileName[key];
+
+        this.rawMetadata[fileName] = rawMetadata;
+
+        this.metadata[fileName] = this.interpretMetadata(rawMetadata);
+      }
 
     })
 
+    // If no data, return null
+    if (!Object.keys(this.rawMetadata).length)
+      throwEmptyError();
+
   } else {
 
-    this.rawMetadata = getRaw(data);
-    this.metadata = this.interpretMetadata(this.rawMetadata);
+    rawMetadata = getRaw(data);
+
+    if (rawMetadata) {
+      this.rawMetadata = rawMetadata;
+      this.metadata = this.interpretMetadata(this.rawMetadata);
+    } else {
+      // If no data, return null
+      throwEmptyError();
+    }
 
   }
-
+  
   this.loaded = true;
 };
 

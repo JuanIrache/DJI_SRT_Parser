@@ -67,7 +67,7 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
     }
   });
   if (converted.length < 1) {
-    console.log('Error converting object');
+    console.error('Error converting object');
     return null;
   }
   return converted;

@@ -330,10 +330,13 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     }
     return result;
   };
-  let interpretPacket = function (pck) {
+  let interpretPacket = function (pck, seemsRadians) {
     let interpretItem = function (key, datum) {
       //interprets known values to most useful data type
       let interpretedI = {};
+      if (seemsRadians && (key === 'latitude' || key === 'longtitude')) {
+        datum *= 180 / Math.PI;
+      }
       if (key.toUpperCase() === 'GPS') {
         interpretedI = {
           LATITUDE: isNum(datum[1]) ? Number(datum[1]) : 'n/a',
@@ -488,8 +491,34 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     return smoothArr;
   };
 
+  // Mavic Air 2 has a bug where coords are in radians. This tries to detect this error and convert to degrees
+  const deduceRadians = function (arr) {
+    let maxLat = -Infinity;
+    let minLat = Infinity;
+    let maxLon = -Infinity;
+    let minLon = Infinity;
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].latitude && arr[i].longtitude) {
+        maxLat = Math.max(maxLat, arr[i].latitude);
+        maxLon = Math.max(maxLon, arr[i].longtitude);
+        minLat = Math.min(minLat, arr[i].latitude);
+        minLon = Math.min(minLon, arr[i].longtitude);
+      }
+    }
+    if (maxLon > Math.PI) return false;
+    if (maxLon < -Math.PI) return false;
+    if (maxLat > Math.PI / 2) return false;
+    if (maxLat < -Math.PI / 2) return false;
+    // This distance in radians would probably be impossible for a drone (except near the poles)
+    if (maxLat - minLat > 0.01) return false;
+    if (maxLon - minLon > 0.01) return false;
+    return true;
+  };
+
+  const seemsRadians = deduceRadians(arr);
+
   // If there was a time resampled array already created
-  let newArr = arr.map((pck) => interpretPacket(pck));
+  let newArr = arr.map(pck => interpretPacket(pck, seemsRadians));
 
   //Fix repeated dates
   newArr = fixDates(newArr);

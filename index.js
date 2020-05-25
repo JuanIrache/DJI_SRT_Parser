@@ -509,9 +509,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     if (maxLon < -Math.PI) return false;
     if (maxLat > Math.PI / 2) return false;
     if (maxLat < -Math.PI / 2) return false;
-    // This distance in radians would probably be impossible for a drone (except near the poles)
-    if (maxLat - minLat > 0.01) return false;
-    if (maxLon - minLon > 0.01) return false;
+    // This distance in radians would probably be impossible for a drone
+    if (maxLat - minLat > 0.001) return false;
+    if (maxLon - minLon > 0.001) return false;
     return true;
   };
 

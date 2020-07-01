@@ -127,18 +127,6 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   // Forcing srt to have one information line plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
   arr = arr.filter(value => Object.keys(value).length > 1);
 
-  //Fix strange RTK format
-  const fixRTK = function (arr) {
-    let computed = JSON.parse(JSON.stringify(arr));
-    computed.forEach(c => {
-      if (!c.GPS && c.RTK) {
-        c.GPS = JSON.parse(JSON.stringify(c.RTK));
-        delete c.RTK;
-      }
-    });
-    return computed;
-  };
-
   // Fix duplicated dates
   const fixDates = function (arr) {
     let computed = JSON.parse(JSON.stringify(arr));
@@ -349,6 +337,16 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     return result;
   };
   let interpretPacket = function (pck, seemsRadians) {
+    //Fix strange RTK format
+    const fixRTK = function (pck) {
+      if (!pck.GPS && pck.RTK) {
+        const result = JSON.parse(JSON.stringify(pck));
+        result.GPS = JSON.parse(JSON.stringify(result.RTK));
+        delete result.RTK;
+        return result;
+      }
+      return pck;
+    };
     let interpretItem = function (key, datum) {
       //interprets known values to most useful data type
       let interpretedI = {};
@@ -462,6 +460,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       return pckt;
     };
     let interpretedP = {};
+    pck = fixRTK(pck);
     for (let item in pck) {
       interpretedP[item.toUpperCase()] = interpretItem(item, pck[item]);
     }
@@ -539,11 +538,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
 
   const seemsRadians = deduceRadians(arr);
 
-  //Fix strange RTK bug
-  let newArr = fixRTK(arr);
-
   // If there was a time resampled array already created
-  newArr = newArr.map(pck => interpretPacket(pck, seemsRadians));
+  let newArr = arr.map(pck => interpretPacket(pck, seemsRadians));
 
   //Fix repeated dates
   newArr = fixDates(newArr);

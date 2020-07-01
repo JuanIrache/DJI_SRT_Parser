@@ -127,8 +127,20 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   // Forcing srt to have one information line plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
   arr = arr.filter(value => Object.keys(value).length > 1);
 
+  //Fix strange RTK format
+  const fixRTK = function (arr) {
+    let computed = JSON.parse(JSON.stringify(arr));
+    computed.forEach(c => {
+      if (!c.GPS && c.RTK) {
+        c.GPS = JSON.parse(JSON.stringify(c.RTK));
+        delete c.RTK;
+      }
+    });
+    return computed;
+  };
+
+  // Fix duplicated dates
   const fixDates = function (arr) {
-    //Fix duplicated dates
     let computed = JSON.parse(JSON.stringify(arr));
     computed.forEach((c, i, arr) => {
       if (i > 0 && i < arr.length - 1 && c.DATE === arr[i + 1].DATE) {
@@ -527,8 +539,11 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
 
   const seemsRadians = deduceRadians(arr);
 
+  //Fix strange RTK bug
+  let newArr = fixRTK(arr);
+
   // If there was a time resampled array already created
-  let newArr = arr.map(pck => interpretPacket(pck, seemsRadians));
+  newArr = newArr.map(pck => interpretPacket(pck, seemsRadians));
 
   //Fix repeated dates
   newArr = fixDates(newArr);

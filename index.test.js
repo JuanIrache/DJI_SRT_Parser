@@ -305,6 +305,7 @@ test('Loading multiples files, one with incomplete/broken data', () => {
 
 let incompleteData2 = preload(`./samples/broken_incomplete2.SRT`);
 let incomplete2 = DJISRTParser( incompleteData2, 'broken_incomplete2.SRT');
-test('Loading file with incomplete/broken GPS data', () => {
-  expect(incomplete2.metadata()).toBeDefined();
+test('Loading file with incomplete/broken GPS data and filling it', () => {
+  incomplete2.setSmoothing(0);
+  expect(JSON.parse(incomplete2.toGeoJSON(false, true)).features[4].geometry.coordinates).toEqual([ -57.823383, -34.869941 ])
 });

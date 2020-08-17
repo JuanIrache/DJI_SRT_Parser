@@ -65,7 +65,7 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
       }
     }
   });
-  
+
   if (converted.length < 1 || Object.entries(converted[0]).length === 0) {
     console.log('Error converting object');
     return null;
@@ -119,8 +119,8 @@ DJI_SRT_Parser.prototype.millisecondsPerSample = function (metadata, millisecond
 
 DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
 
-  // Forcing srt to have two information lines plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
-  arr = arr.filter((value) => Object.keys(value).length > 3);
+  // Forcing srt to have one line plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
+  arr = arr.filter((value) => Object.keys(value).length > 2);
 
   // Do not process empty files
   if (!arr.length) return null;
@@ -430,8 +430,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       let latitude = pckt['LATITUDE']; //Mavic 2 style
       let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
       let satellites = pckt['SATELLITES'];
-      if (latitude != undefined && longitude != undefined) {
-        let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
+      // If one parameter exists, we fill the other later
+      if (latitude != undefined || longitude != undefined) {
         pckt.GPS = {
           LONGITUDE: longitude,
           LATITUDE: latitude,
@@ -519,15 +519,19 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   }
   let smoothing = smooth != undefined ? smooth : 4;
   smoothing = smoothing >= 0 ? smoothing : 0;
-  if (newArr[0] && newArr[0].GPS) {
+
+  // Only accept parameters with GPS to prevent fatal errors
+  filteredGPSArr = newArr.filter(arr => arr.GPS);
+
+  if (filteredGPSArr.length) {
     if (smoothing !== 0) {
-      newArr = smoothenGPS(newArr, smoothing);
+      filteredGPSArr = smoothenGPS(filteredGPSArr, smoothing);
     }
     this.smoothened = smoothing;
-    newArr = computeSpeed(newArr);
+    newArr = computeSpeed(filteredGPSArr);
   }
 
-  if (newArr.length < 1) {
+  if (!newArr.length) {
     console.error('Error intrerpreting metadata');
     return null;
   }
@@ -940,7 +944,7 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
     }
 
   }
-  
+
   this.loaded = true;
 };
 

@@ -285,3 +285,27 @@ loadPrepared = DJISRTParser(JSON.stringify(preparedData), 'preparedData.SRT', /*
 test('Loading prepared data as dataString', () => {
   expect(loadPrepared.metadata().stats).toBeDefined();
 });
+
+// Incomplete and Empty Data
+let empty = preload(`./samples/broken_empty.SRT`);
+let empty2 = preload(`./samples/broken_empty2.SRT`);
+let incomplete = preload(`./samples/broken_incomplete.SRT`);
+
+let brokenData = DJISRTParser([empty, empty2, incomplete], ['broken_empty.SRT', 'broken_empty2.SRT', 'broken_incomplete.SRT']);
+test('Loading multiple files with no data, or incomplete', () => {
+  expect(brokenData).toBeDefined();
+  expect(brokenData.toGeoJSON()).toBeDefined();
+  expect(brokenData.toCSV()).toBeDefined();
+});
+
+let incompleteData = DJISRTParser([incomplete, data], ['broken_incomplete.SRT', 'mavic_pro.SRT']);
+test('Loading multiples files, one with incomplete/broken data', () => {
+  expect(incompleteData.toGeoJSON(false, true).length).toBe(221451);
+});
+
+let incompleteData2 = preload(`./samples/broken_incomplete2.SRT`);
+let incomplete2 = DJISRTParser( incompleteData2, 'broken_incomplete2.SRT');
+test('Loading file with incomplete/broken GPS data and filling it', () => {
+  incomplete2.setSmoothing(0);
+  expect(JSON.parse(incomplete2.toGeoJSON(false, true)).features[4].geometry.coordinates).toEqual([ -57.823383, -34.869941 ])
+});

@@ -69,8 +69,9 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
       }
     }
   });
-  if (converted.length < 1) {
-    console.error('Error converting object');
+
+  if (converted.length < 1 || Object.entries(converted[0]).length === 0) {
+    console.log('Error converting object');
     return null;
   }
   return converted;
@@ -126,7 +127,9 @@ DJI_SRT_Parser.prototype.millisecondsPerSample = function (
 DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   // Forcing srt to have one information line plus the timecode. Preventing empty lines and incomplete data in the array, something frequent at the end of the DJI´s SRTs.
   arr = arr.filter(value => Object.keys(value).length > 1);
-
+  // Do not process empty files
+  if (!arr.length) return null;
+  
   // Fix duplicated dates
   const fixDates = function (arr) {
     let computed = JSON.parse(JSON.stringify(arr));
@@ -449,8 +452,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       let latitude = pckt['LATITUDE']; //Mavic 2 style
       let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
       let satellites = pckt['SATELLITES'];
-      if (latitude != undefined && longitude != undefined) {
-        let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
+      // If one parameter exists, we fill the other later
+      if (latitude != undefined || longitude != undefined) {
         pckt.GPS = {
           LONGITUDE: longitude,
           LATITUDE: latitude,
@@ -565,19 +568,24 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   }
   let smoothing = smooth != undefined ? smooth : 4;
   smoothing = smoothing >= 0 ? smoothing : 0;
-  if (newArr[0].GPS) {
+
+  // Only accept parameters with GPS to prevent fatal errors
+  filteredGPSArr = newArr.filter(arr => arr.GPS);
+
+  if (filteredGPSArr.length) {
     if (smoothing !== 0) {
-      newArr = smoothenGPS(newArr, smoothing);
+      filteredGPSArr = smoothenGPS(filteredGPSArr, smoothing);
     }
     this.smoothened = smoothing;
-    newArr = computeSpeed(newArr);
+    newArr = computeSpeed(filteredGPSArr);
   }
 
-  let stats = computeStats(newArr);
-  if (newArr.length < 1) {
+  if (!newArr.length) {
     console.error('Error intrerpreting metadata');
     return null;
   }
+
+  let stats = computeStats(newArr);
 
   return {
     packets: newArr,
@@ -857,7 +865,8 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
   }
 
   if (context.isMultiple) {
-    context.fileName.forEach(key => {
+
+    Object.keys(this.metadata).forEach(key => {
       if (raw) preProcess(this.rawMetadata[key], key);
       else preProcess(this.metadata[key].packets, key);
     });
@@ -915,7 +924,13 @@ DJI_SRT_Parser.prototype.getRawMetadata = function (fileName = null) {
 DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
   this.rawMetadata = {};
 
-  const maybeParse = data => {
+  let rawMetadata;
+
+  const throwEmptyError = () => {
+    throw 'Not valid data'
+  };
+
+  const maybeParse = (data) => {
     try {
       JSON.parse(data);
     } catch (e) {
@@ -930,16 +945,36 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
 
   if (this.isMultiple) {
     data.forEach((d, key) => {
-      let rawMetadata = getRaw(d);
 
-      let fileName = this.fileName[key];
+      rawMetadata = getRaw(d);
 
-      this.rawMetadata[fileName] = rawMetadata;
-      this.metadata[fileName] = this.interpretMetadata(rawMetadata);
-    });
+      if (rawMetadata) {
+
+        let fileName = this.fileName[key];
+
+        this.rawMetadata[fileName] = rawMetadata;
+
+        this.metadata[fileName] = this.interpretMetadata(rawMetadata);
+      }
+
+    })
+
+    // If no data, return null
+    if (!Object.keys(this.rawMetadata).length)
+      throwEmptyError();
+
   } else {
-    this.rawMetadata = getRaw(data);
-    this.metadata = this.interpretMetadata(this.rawMetadata);
+
+    rawMetadata = getRaw(data);
+
+    if (rawMetadata) {
+      this.rawMetadata = rawMetadata;
+      this.metadata = this.interpretMetadata(this.rawMetadata);
+    } else {
+      // If no data, return null
+      throwEmptyError();
+    }
+
   }
 
   this.loaded = true;

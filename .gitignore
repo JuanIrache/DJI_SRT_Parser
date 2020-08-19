@@ -1,3 +1,4 @@
 node_modules/
 samples/out.mgjson
 samples/processed_files/
+.DS_Store

@@ -869,7 +869,6 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
   }
 
   if (context.isMultiple) {
-
     Object.keys(this.metadata).forEach(key => {
       if (raw) preProcess(this.rawMetadata[key], key);
       else preProcess(this.metadata[key].packets, key);
@@ -931,10 +930,10 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
   let rawMetadata;
 
   const throwEmptyError = () => {
-    throw 'Not valid data'
+    throw 'Not valid data';
   };
 
-  const maybeParse = (data) => {
+  const maybeParse = data => {
     try {
       JSON.parse(data);
     } catch (e) {
@@ -949,26 +948,20 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
 
   if (this.isMultiple) {
     data.forEach((d, key) => {
-
       rawMetadata = getRaw(d);
 
       if (rawMetadata) {
-
         let fileName = this.fileName[key];
 
         this.rawMetadata[fileName] = rawMetadata;
 
         this.metadata[fileName] = this.interpretMetadata(rawMetadata);
       }
-
-    })
+    });
 
     // If no data, return null
-    if (!Object.keys(this.rawMetadata).length)
-      throwEmptyError();
-
+    if (!Object.keys(this.rawMetadata).length) throwEmptyError();
   } else {
-
     rawMetadata = getRaw(data);
 
     if (rawMetadata) {
@@ -978,7 +971,6 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
       // If no data, return null
       throwEmptyError();
     }
-
   }
 
   this.loaded = true;

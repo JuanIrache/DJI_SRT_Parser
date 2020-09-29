@@ -21,7 +21,7 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
   const packetRegEx = /^\d+$/;
   const arrayRegEx = /\b([A-Z_a-z]+)\(([-\+\w.,/]+)\)/g;
   const valueRegEx = /\b([A-Z_a-z]+)\s?:[\s\[a-z_A-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
-  const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}/;
+  const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2,}/;
   const accurateDateRegex = /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
   //Split difficult Phantom4Pro format
   srt = srt
@@ -65,13 +65,16 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
         converted[converted.length - 1].DATE =
           match[1] + ':' + match[2] + '.' + match[3];
       } else if ((match = dateRegEx.exec(line))) {
-        converted[converted.length - 1].DATE = match[0];
+        converted[converted.length - 1].DATE = match[0].replace(
+          /(:\d{2})(\d+)\d*$/,
+          '$1.$2'
+        );
       }
     }
   });
 
   if (converted.length < 1 || Object.entries(converted[0]).length === 0) {
-    console.log('Error converting object');
+    console.error('Error converting object');
     return null;
   }
   return converted;
@@ -382,14 +385,15 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       } else if (key.toUpperCase() === 'TIMECODE') {
         interpretedI = datum;
       } else if (key.toUpperCase() === 'DATE') {
-        const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{3})?Z/;
+        const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
         let date = datum;
         if (!isoDateRegex.exec(datum))
           date = datum
             .replace(/\./g, '-')
             .replace(' ', 'T')
             .replace(/-([0-9](\b|[a-zA-Z]))/g, '-0$1')
-            .replace(/:(\w{3})-(\w{3})$/g, '.$1');
+            .replace(/:(\w{3})-(\w{3})$/g, '.$1')
+            .replace(/-(\d+)Z?$/, '.$1');
         interpretedI = new Date(date).getTime();
       } else if (key.toUpperCase() === 'EV') {
         interpretedI = eval(datum);
@@ -865,7 +869,6 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
   }
 
   if (context.isMultiple) {
-
     Object.keys(this.metadata).forEach(key => {
       if (raw) preProcess(this.rawMetadata[key], key);
       else preProcess(this.metadata[key].packets, key);
@@ -927,10 +930,10 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
   let rawMetadata;
 
   const throwEmptyError = () => {
-    throw 'Not valid data'
+    throw 'Not valid data';
   };
 
-  const maybeParse = (data) => {
+  const maybeParse = data => {
     try {
       JSON.parse(data);
     } catch (e) {
@@ -945,26 +948,20 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
 
   if (this.isMultiple) {
     data.forEach((d, key) => {
-
       rawMetadata = getRaw(d);
 
       if (rawMetadata) {
-
         let fileName = this.fileName[key];
 
         this.rawMetadata[fileName] = rawMetadata;
 
         this.metadata[fileName] = this.interpretMetadata(rawMetadata);
       }
-
-    })
+    });
 
     // If no data, return null
-    if (!Object.keys(this.rawMetadata).length)
-      throwEmptyError();
-
+    if (!Object.keys(this.rawMetadata).length) throwEmptyError();
   } else {
-
     rawMetadata = getRaw(data);
 
     if (rawMetadata) {
@@ -974,7 +971,6 @@ DJI_SRT_Parser.prototype.flow = function (data, isPreparedData) {
       // If no data, return null
       throwEmptyError();
     }
-
   }
 
   this.loaded = true;

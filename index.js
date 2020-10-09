@@ -295,7 +295,10 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       };
       let result = res;
       for (let elt in result) {
-        let select = arr.map(pck => pck[elt]);
+        let select = arr.map(pck => { 
+          //remove undefined values in mixed srt files
+          if (pck) return pck[elt]
+        });
         if (elt === 'HOME') {
           //fill fields that do not use standard stats
           let allHomes = [];
@@ -588,7 +591,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     console.error('Error intrerpreting metadata');
     return null;
   }
-
+  
   let stats = computeStats(newArr);
 
   return {

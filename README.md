@@ -4,8 +4,9 @@ Parses and interprets some data from DJI's Drones SRT metadata files.
 Mostly tested with Mavic Pro SRT files. You can send me yours if you want it implemented.
 Please let me know if you create something with this :).
 
-- Used for creating this SRT log viewer in https://djitelemetryoverlay.com
-- Example video using the data in After Effects: https://youtu.be/zAkUTOLmdmQ
+- Used in [Telemetry Overlay](https://goprotelemetryextractor.com/telemetry-overlay-gps-video-sensors)
+- Used for creating the [SRT Viewer](https://djitelemetryoverlay.com/srt-viewer/)
+- [Example video](https://youtu.be/zAkUTOLmdmQ) with this code and After Effects
 
 ## Installation
 

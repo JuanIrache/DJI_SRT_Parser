@@ -177,13 +177,12 @@ test('We should be able to read the focal length in the Mavic 2 format', () => {
   expect(Mavic_2_pro.metadata().packets[0].FOCAL_LEN).toBe(280);
 });
 
-
 // EXPORT TO FORMATS
 let data_p4_rtk2 = preload(`./samples/p4_rtk.SRT`);
 let p4_rtk2 = DJISRTParser(data_p4_rtk2, 'p4_rtk.SRT');
 
 test('Single file to CSV. Some "V_S" have negative values', () => {
-  expect(p4_rtk2.toCSV().length).toBe(15911);
+  expect(p4_rtk2.toCSV().length).toBe(16419);
 });
 
 test('Single file to CSV, rawMetadata enabled', () => {
@@ -191,8 +190,11 @@ test('Single file to CSV, rawMetadata enabled', () => {
 });
 
 test('Single file to GeoJSON with waypoints', () => {
-  preProcess = p4_rtk2.toGeoJSON( /* rawMetadata = */ false, /* waypoints = */ true);
-  expect(preProcess.length).toBe(33394);
+  preProcess = p4_rtk2.toGeoJSON(
+    /* rawMetadata = */ false,
+    /* waypoints = */ true
+  );
+  expect(preProcess.length).toBe(34647);
 
   let coordinate = JSON.parse(preProcess).features[0].geometry.coordinates[0];
   expect(typeof coordinate).toBe('number'); // Very important, coordinates must be numbers
@@ -232,7 +234,7 @@ test('Get multiple files name', () => {
 });
 
 test('Multiple files to CSV', () => {
-  expect(multi_mavic_pro_p4_rtk.toCSV().length).toBe(121637);
+  expect(multi_mavic_pro_p4_rtk.toCSV().length).toBe(124137);
 });
 
 test('Multiple files to CSV, rawMetadata enabled', () => {
@@ -240,7 +242,7 @@ test('Multiple files to CSV, rawMetadata enabled', () => {
 });
 
 test('Multiple files to GeoJSON with waypoints', () => {
-  expect(multi_mavic_pro_p4_rtk.toGeoJSON(false, true).length).toBe(246084);
+  expect(multi_mavic_pro_p4_rtk.toGeoJSON(false, true).length).toBe(247337);
 });
 
 test('Multiple files to GeoJSON with waypoints, rawMetadata enabled', () => {

@@ -1,4 +1,3 @@
-
 let preProcess;
 
 function preload(file) {
@@ -29,7 +28,7 @@ test('Date should be present', () => {
 test('This sample should contain a Home point', () => {
   expect(MavicPro.metadata().stats.HOME[0]).toEqual({
     LATITUDE: -20.2532,
-    LONGITUDE: 149.0251,
+    LONGITUDE: 149.0251
   });
 });
 test('The average 3D speed should be set', () => {
@@ -198,39 +197,45 @@ test('Single file to GeoJSON with waypoints', () => {
 
   let coordinate = JSON.parse(preProcess).features[0].geometry.coordinates[0];
   expect(typeof coordinate).toBe('number'); // Very important, coordinates must be numbers
-
 });
 
 test('Single file to GeoJSON with waypoints, rawMetadata enabled', () => {
-  preProcess = p4_rtk2.toGeoJSON( /* rawMetadata = */ true,  /* waypoints = */ true);
+  preProcess = p4_rtk2.toGeoJSON(
+    /* rawMetadata = */ true,
+    /* waypoints = */ true
+  );
   expect(preProcess.length).toBe(21242);
 
   let coordinate = JSON.parse(preProcess).features[0].geometry.coordinates[0];
   expect(typeof coordinate).toBe('number'); // Very important, coordinates must be numbers
-
 });
 
 // Set custom properties and export
 data = preload(`./samples/mavic_pro.SRT`);
 let mavic_pro_ = DJISRTParser(data, 'mavic_pro.SRT');
 test('Set custom properties and export', () => {
-
   expect(mavic_pro_.toCSV().length).toBe(96532);
-  mavic_pro_.setProperties({ 'propInt': 123, 'propInt2': 456 });
-  mavic_pro_.setProperties({ 'propExtra': 'Prop added in a second instance' })
+  mavic_pro_.setProperties({ propInt: 123, propInt2: 456 });
+  mavic_pro_.setProperties({ propExtra: 'Prop added in a second instance' });
   expect(mavic_pro_.toCSV().length).toBe(118087);
 
-  let geoJSONProps = JSON.parse(mavic_pro_.toGeoJSON(false, true)).features[0].properties;
+  let geoJSONProps = JSON.parse(mavic_pro_.toGeoJSON(false, true)).features[0]
+    .properties;
   expect(geoJSONProps.propInt).toBe(123);
   expect(geoJSONProps.propExtra).toBe('Prop added in a second instance');
 });
 
-
 // Multiple Files
-let multi_mavic_pro_p4_rtk = DJISRTParser([data, data_p4_rtk2], ['mavic_pro.SRT', 'p4_rtk.SRT']);
+let multi_mavic_pro_p4_rtk = DJISRTParser(
+  [data, data_p4_rtk2],
+  ['mavic_pro.SRT', 'p4_rtk.SRT']
+);
 
 test('Get multiple files name', () => {
-  expect(multi_mavic_pro_p4_rtk.getFileName()).toEqual(['mavic_pro.SRT', 'p4_rtk.SRT']);
+  expect(multi_mavic_pro_p4_rtk.getFileName()).toEqual([
+    'mavic_pro.SRT',
+    'p4_rtk.SRT'
+  ]);
 });
 
 test('Multiple files to CSV', () => {
@@ -250,24 +255,36 @@ test('Multiple files to GeoJSON with waypoints, rawMetadata enabled', () => {
 });
 
 test('Get metadata from a particular file', () => {
-  expect(multi_mavic_pro_p4_rtk.metadata('mavic_pro.SRT').stats.GPS.SATELLITES.max).toBe(16);
+  expect(
+    multi_mavic_pro_p4_rtk.metadata('mavic_pro.SRT').stats.GPS.SATELLITES.max
+  ).toBe(16);
 });
 
 test('Get rawMetadata from a particular file', () => {
-  expect(multi_mavic_pro_p4_rtk.rawMetadata('mavic_pro.SRT')[0].TIMECODE).toBeDefined();
+  expect(
+    multi_mavic_pro_p4_rtk.rawMetadata('mavic_pro.SRT')[0].TIMECODE
+  ).toBeDefined();
 });
 
 test('Get rawMetadata from another particular file', () => {
-  expect(multi_mavic_pro_p4_rtk.rawMetadata('p4_rtk.SRT')[0].F_PRY).toBeDefined(); // Method 1
-  expect(multi_mavic_pro_p4_rtk.rawMetadata()['p4_rtk.SRT'][0].F_PRY).toBeDefined(); // Method 2
+  expect(
+    multi_mavic_pro_p4_rtk.rawMetadata('p4_rtk.SRT')[0].F_PRY
+  ).toBeDefined(); // Method 1
+  expect(
+    multi_mavic_pro_p4_rtk.rawMetadata()['p4_rtk.SRT'][0].F_PRY
+  ).toBeDefined(); // Method 2
 });
 
-
 test('Set milliseconds on multiple files', () => {
-  expect(JSON.parse(multi_mavic_pro_p4_rtk.toGeoJSON()).features[1].geometry.coordinates.length).toBe(55); // Original coordinates
+  expect(
+    JSON.parse(multi_mavic_pro_p4_rtk.toGeoJSON()).features[1].geometry
+      .coordinates.length
+  ).toBe(55); // Original coordinates
   multi_mavic_pro_p4_rtk.setMillisecondsPerSample(7000);
-  expect(JSON.parse(multi_mavic_pro_p4_rtk.toGeoJSON()).features[1].geometry.coordinates.length).toBe(8); // Reduced coordinates
-
+  expect(
+    JSON.parse(multi_mavic_pro_p4_rtk.toGeoJSON()).features[1].geometry
+      .coordinates.length
+  ).toBe(8); // Reduced coordinates
 });
 
 test('Set smoothing on multiple files', () => {
@@ -275,15 +292,22 @@ test('Set smoothing on multiple files', () => {
   expect(multi_mavic_pro_p4_rtk.toGeoJSON()).toBeDefined();
 });
 
-
 // Load PreparedData
 let preparedData = require('./samples/preparedData.json');
-let loadPrepared = DJISRTParser(preparedData, 'preparedData.SRT', /* isPreparedData = */ true);
+let loadPrepared = DJISRTParser(
+  preparedData,
+  'preparedData.SRT',
+  /* isPreparedData = */ true
+);
 test('Loading prepared data in json format', () => {
   expect(loadPrepared.metadata().stats).toBeDefined();
 });
 
-loadPrepared = DJISRTParser(JSON.stringify(preparedData), 'preparedData.SRT', /* isPreparedData = */ true);
+loadPrepared = DJISRTParser(
+  JSON.stringify(preparedData),
+  'preparedData.SRT',
+  /* isPreparedData = */ true
+);
 test('Loading prepared data as dataString', () => {
   expect(loadPrepared.metadata().stats).toBeDefined();
 });
@@ -293,21 +317,30 @@ let empty = preload(`./samples/broken_empty.SRT`);
 let empty2 = preload(`./samples/broken_empty2.SRT`);
 let incomplete = preload(`./samples/broken_incomplete.SRT`);
 
-let brokenData = DJISRTParser([empty, empty2, incomplete], ['broken_empty.SRT', 'broken_empty2.SRT', 'broken_incomplete.SRT']);
+let brokenData = DJISRTParser(
+  [empty, empty2, incomplete],
+  ['broken_empty.SRT', 'broken_empty2.SRT', 'broken_incomplete.SRT']
+);
 test('Loading multiple files with no data, or incomplete', () => {
   expect(brokenData).toBeDefined();
   expect(brokenData.toGeoJSON()).toBeDefined();
   expect(brokenData.toCSV()).toBeDefined();
 });
 
-let incompleteData = DJISRTParser([incomplete, data], ['broken_incomplete.SRT', 'mavic_pro.SRT']);
+let incompleteData = DJISRTParser(
+  [incomplete, data],
+  ['broken_incomplete.SRT', 'mavic_pro.SRT']
+);
 test('Loading multiples files, one with incomplete/broken data', () => {
   expect(incompleteData.toGeoJSON(false, true).length).toBe(221451);
 });
 
 let incompleteData2 = preload(`./samples/broken_incomplete2.SRT`);
-let incomplete2 = DJISRTParser( incompleteData2, 'broken_incomplete2.SRT');
+let incomplete2 = DJISRTParser(incompleteData2, 'broken_incomplete2.SRT');
 test('Loading file with incomplete/broken GPS data and filling it', () => {
   incomplete2.setSmoothing(0);
-  expect(JSON.parse(incomplete2.toGeoJSON(false, true)).features[4].geometry.coordinates).toEqual([ -57.823383, -34.869941 ])
+  expect(
+    JSON.parse(incomplete2.toGeoJSON(false, true)).features[4].geometry
+      .coordinates
+  ).toEqual([-57.823383, -34.869941]);
 });

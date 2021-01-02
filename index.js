@@ -132,7 +132,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   arr = arr.filter(value => Object.keys(value).length > 1);
   // Do not process empty files
   if (!arr.length) return null;
-  
+
   // Fix duplicated dates
   const fixDates = function (arr) {
     let computed = JSON.parse(JSON.stringify(arr));
@@ -382,6 +382,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
           LATITUDE: Number(datum[1]),
           LONGITUDE: Number(datum[0])
         };
+        if (datum.length > 2) {
+          interpretedI.ALTITUDE = +datum[2].replace(/m$/, '');
+        }
       } else if (key.toUpperCase() === 'TIMECODE') {
         interpretedI = datum;
       } else if (key.toUpperCase() === 'DATE') {
@@ -431,7 +434,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         //translate keys form various formats
         SHUTTER: ['TV', 'SS'],
         FNUM: ['IR', 'F'],
-        BAROMETER: ['BAROMETER', 'H']
+        ALTITUDE: ['H']
       };
       for (let key in references) {
         if (pckt[key] == undefined) {
@@ -618,8 +621,6 @@ function getElevationKey(src) {
     return 'BAROMETER';
   } else if (src.HB != undefined) {
     return 'HB';
-  } else if (src.HS != undefined) {
-    return 'HS';
   }
   return 'ALTITUDE';
 }
@@ -632,8 +633,6 @@ function getElevation(src) {
     return src.BAROMETER;
   } else if (src.HB != undefined) {
     return src.HB;
-  } else if (src.HS != undefined) {
-    return src.HS;
   }
   return null;
 }
@@ -850,8 +849,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
             'SPEED_THREED',
             'SPEED_TWOD',
             'SPEED_VERTICAL',
-            'HB',
-            'HS'
+            'HB'
           ].includes(prop)
         ) {
           result.properties[prop] = props[prop];

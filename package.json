@@ -6,7 +6,7 @@
       "samples/processed_files"
     ]
   },
-  "version": "1.1.17",
+  "version": "1.1.18",
   "description": "Parses and interprets DJI's drones SRT metadata",
   "main": "index.js",
   "scripts": {

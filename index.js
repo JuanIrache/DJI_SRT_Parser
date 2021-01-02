@@ -621,8 +621,6 @@ function getElevationKey(src) {
     return 'BAROMETER';
   } else if (src.HB != undefined) {
     return 'HB';
-  } else if (src.HS != undefined) {
-    return 'HS';
   }
   return 'ALTITUDE';
 }
@@ -635,8 +633,6 @@ function getElevation(src) {
     return src.BAROMETER;
   } else if (src.HB != undefined) {
     return src.HB;
-  } else if (src.HS != undefined) {
-    return src.HS;
   }
   return null;
 }
@@ -853,8 +849,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
             'SPEED_THREED',
             'SPEED_TWOD',
             'SPEED_VERTICAL',
-            'HB',
-            'HS'
+            'HB'
           ].includes(prop)
         ) {
           result.properties[prop] = props[prop];

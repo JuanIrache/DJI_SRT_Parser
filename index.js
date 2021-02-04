@@ -1,3 +1,6 @@
+const geoTz = require('geo-tz');
+const moment = require('moment-timezone');
+
 const toMGJSON = require('./modules/toMGJSON');
 
 function DJI_SRT_Parser() {
@@ -133,14 +136,32 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   // Do not process empty files
   if (!arr.length) return null;
 
+  let fixDateUTC;
+
   // Fix duplicated dates
   const fixDates = function (arr) {
     let computed = JSON.parse(JSON.stringify(arr));
+    const sample = computed.find(
+      c =>
+        c.GPS &&
+        c.GPS.LATITUDE != null &&
+        c.GPS.LONGITUDE != null &&
+        c.DATE != null
+    );
+    let offset = 0;
+    if (sample) {
+      const tzs = geoTz(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
+      if (tzs.length) {
+        let d = moment(sample.DATE);
+        offset = (d.utcOffset() - d.tz(tzs[0]).utcOffset()) * 60 * 1000;
+      }
+    }
     computed.forEach((c, i, arr) => {
       if (i > 0 && i < arr.length - 1 && c.DATE === arr[i + 1].DATE) {
         const diff = c.DATE - arr[i - 1].DATE;
         c.DATE = c.DATE - diff / 2;
       }
+      if (fixDateUTC) c.DATE += offset;
     });
     return computed;
   };
@@ -390,13 +411,16 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       } else if (key.toUpperCase() === 'DATE') {
         const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
         let date = datum;
+        // Fix date offset if not Zulu
+        if (fixDateUTC == null) fixDateUTC = !/.+Z$/.test(datum);
         if (!isoDateRegex.exec(datum))
           date = datum
             .replace(/\./g, '-')
             .replace(' ', 'T')
             .replace(/-([0-9](\b|[a-zA-Z]))/g, '-0$1')
             .replace(/:(\w{3})-(\w{3})$/g, '.$1')
-            .replace(/-(\d+)Z?$/, '.$1');
+            .replace(/-(\d+Z?)$/, '.$1');
+
         interpretedI = new Date(date).getTime();
       } else if (key.toUpperCase() === 'EV') {
         interpretedI = eval(datum);

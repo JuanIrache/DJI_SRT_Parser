@@ -47,7 +47,10 @@
     "url": "https://github.com/JuanIrache/DJI_SRT_Parser/issues"
   },
   "homepage": "https://github.com/JuanIrache/DJI_SRT_Parser#readme",
-  "dependencies": {},
+  "dependencies": {
+    "geo-tz": "^6.0.1",
+    "moment-timezone": "^0.5.32"
+  },
   "devDependencies": {
     "jest": "^26.6.3"
   }

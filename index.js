@@ -1,4 +1,4 @@
-const geoTz = require('geo-tz');
+const tzlookup = require('tz-lookup');
 const moment = require('moment-timezone');
 
 const toMGJSON = require('./modules/toMGJSON');
@@ -150,10 +150,10 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     );
     let offset = 0;
     if (sample) {
-      const tzs = geoTz(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
-      if (tzs.length) {
+      const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
+      if (tz) {
         let d = moment(sample.DATE);
-        offset = (d.utcOffset() - d.tz(tzs[0]).utcOffset()) * 60 * 1000;
+        offset = (d.utcOffset() - d.tz(tz).utcOffset()) * 60 * 1000;
       }
     }
     computed.forEach((c, i, arr) => {

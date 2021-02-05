@@ -48,8 +48,8 @@
   },
   "homepage": "https://github.com/JuanIrache/DJI_SRT_Parser#readme",
   "dependencies": {
-    "geo-tz": "^6.0.1",
-    "moment-timezone": "^0.5.32"
+    "moment-timezone": "^0.5.32",
+    "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
     "jest": "^26.6.3"

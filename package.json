@@ -6,7 +6,7 @@
       "samples/processed_files"
     ]
   },
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Parses and interprets DJI's drones SRT metadata",
   "main": "index.js",
   "scripts": {
@@ -48,8 +48,8 @@
   },
   "homepage": "https://github.com/JuanIrache/DJI_SRT_Parser#readme",
   "dependencies": {
-    "geo-tz": "^6.0.1",
-    "moment-timezone": "^0.5.32"
+    "moment-timezone": "^0.5.32",
+    "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
     "jest": "^26.6.3"

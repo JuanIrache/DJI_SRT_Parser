@@ -152,10 +152,14 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     );
     let offset = 0;
     if (sample) {
-      const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
-      if (tz) {
-        let d = moment(sample.DATE);
-        offset = (d.utcOffset() - d.tz(tz).utcOffset()) * 60 * 1000;
+      try {
+        const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
+        if (tz) {
+          let d = moment(sample.DATE);
+          offset = (d.utcOffset() - d.tz(tz).utcOffset()) * 60 * 1000;
+        }
+      } catch (error) {
+        console.warn(error);
       }
     }
     computed.forEach((c, i, arr) => {

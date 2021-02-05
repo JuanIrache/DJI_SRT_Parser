@@ -146,6 +146,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         c.GPS &&
         c.GPS.LATITUDE != null &&
         c.GPS.LONGITUDE != null &&
+        c.GPS.LATITUDE != 'n/a' &&
+        c.GPS.LONGITUDE != 'n/a' &&
         c.DATE != null
     );
     let offset = 0;

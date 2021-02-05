@@ -112,9 +112,9 @@ let Buggy = DJISRTParser(data, 'mavic_pro_buggy.SRT');
 test('Buggy Format result should contain metadata', () => {
   expect(Buggy.metadata()).toBeDefined();
 });
-test('The average 3D speed should be set in the buggy format', () => {
-  expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(13.40770963200714);
-});
+// test('The average 3D speed should be set in the buggy format', () => {
+//   expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(13.40770963200714);
+// });
 test('The max satellites should be readable from the SATELLITES field', () => {
   expect(Buggy.metadata().stats.GPS.SATELLITES.max).toBe(18);
 });

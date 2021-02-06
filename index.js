@@ -141,27 +141,35 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   // Fix duplicated dates
   const fixDates = function (arr) {
     let computed = JSON.parse(JSON.stringify(arr));
-    const sample = computed.find(
-      c =>
-        c.GPS &&
-        c.GPS.LATITUDE != null &&
-        c.GPS.LONGITUDE != null &&
-        c.DATE != null
-    );
     let offset = 0;
-    if (sample) {
-      const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
-      if (tz) {
-        let d = moment(sample.DATE);
-        offset = (d.utcOffset() - d.tz(tz).utcOffset()) * 60 * 1000;
+    if (fixDateUTC) {
+      const sample = computed.find(
+        c =>
+          c.GPS &&
+          c.GPS.LATITUDE != null &&
+          c.GPS.LONGITUDE != null &&
+          c.GPS.LATITUDE != 'n/a' &&
+          c.GPS.LONGITUDE != 'n/a' &&
+          c.DATE != null
+      );
+      if (sample) {
+        try {
+          const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
+          if (tz) {
+            let d = moment(sample.DATE);
+            offset = (d.utcOffset() - d.tz(tz).utcOffset()) * 60 * 1000;
+          }
+        } catch (error) {
+          console.warn(error);
+        }
       }
+      computed.forEach(c => (c.DATE += offset));
     }
     computed.forEach((c, i, arr) => {
       if (i > 0 && i < arr.length - 1 && c.DATE === arr[i + 1].DATE) {
         const diff = c.DATE - arr[i - 1].DATE;
         c.DATE = c.DATE - diff / 2;
       }
-      if (fixDateUTC) c.DATE += offset;
     });
     return computed;
   };

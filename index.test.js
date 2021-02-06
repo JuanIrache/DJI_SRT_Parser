@@ -31,9 +31,9 @@ test('This sample should contain a Home point', () => {
     LONGITUDE: 149.0251
   });
 });
-// test('The average 3D speed should be set', () => {
-//   expect(MavicPro.metadata().stats.SPEED.THREED.avg).toBe(21.56914922116961);
-// });
+test('The average 3D speed should be set', () => {
+  expect(MavicPro.metadata().stats.SPEED.THREED.avg).toBe(21.56914922116961);
+});
 test('The max altitude should be readable from the barometer', () => {
   expect(MavicPro.metadata().stats.BAROMETER.max).toBe(118.65000000000002);
 });
@@ -64,9 +64,9 @@ let Old_Format = DJISRTParser(data, 'old_format.SRT');
 test('Old Format result should contain metadata', () => {
   expect(Old_Format.metadata()).toBeDefined();
 });
-// test('The average 3D speed should be set in the old format', () => {
-//   expect(Old_Format.metadata().stats.SPEED.THREED.avg).toBe(21.56914922116961);
-// });
+test('The average 3D speed should be set in the old format', () => {
+  expect(Old_Format.metadata().stats.SPEED.THREED.avg).toBe(21.56914922116961);
+});
 test('The max altitude should be readable from the HB field', () => {
   expect(Old_Format.metadata().stats.HB.max).toBe(118.65000000000002);
 });
@@ -82,9 +82,9 @@ let Mavic_2 = DJISRTParser(data, 'mavic_2_style.SRT');
 test('Mavic 2 Format result should contain metadata', () => {
   expect(Mavic_2.metadata()).toBeDefined();
 });
-// test('The average 2D speed should be set in the Mavic 2 format', () => {
-//   expect(Mavic_2.metadata().stats.SPEED.TWOD.avg).toBe(19.531079073870547);
-// });
+test('The average 2D speed should be set in the Mavic 2 format', () => {
+  expect(Mavic_2.metadata().stats.SPEED.TWOD.avg).toBe(19.531079073870547);
+});
 test('We should be able to read the aperture in the Mavic 2 format', () => {
   expect(Mavic_2.metadata().packets[0].FNUM).toBe(2.2);
 });
@@ -112,9 +112,9 @@ let Buggy = DJISRTParser(data, 'mavic_pro_buggy.SRT');
 test('Buggy Format result should contain metadata', () => {
   expect(Buggy.metadata()).toBeDefined();
 });
-// test('The average 3D speed should be set in the buggy format', () => {
-//   expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(13.40770963200714);
-// });
+test('The average 3D speed should be set in the buggy format', () => {
+  expect(Buggy.metadata().stats.SPEED.THREED.avg).toBe(13.40770963200714);
+});
 test('The max satellites should be readable from the SATELLITES field', () => {
   expect(Buggy.metadata().stats.GPS.SATELLITES.max).toBe(18);
 });

@@ -141,25 +141,27 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   // Fix duplicated dates
   const fixDates = function (arr) {
     let computed = JSON.parse(JSON.stringify(arr));
-    const sample = computed.find(
-      c =>
-        c.GPS &&
-        c.GPS.LATITUDE != null &&
-        c.GPS.LONGITUDE != null &&
-        c.GPS.LATITUDE != 'n/a' &&
-        c.GPS.LONGITUDE != 'n/a' &&
-        c.DATE != null
-    );
-    let offset = 0;
-    if (sample) {
-      try {
-        const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
-        if (tz) {
-          let d = moment(sample.DATE);
-          offset = (d.utcOffset() - d.tz(tz).utcOffset()) * 60 * 1000;
+    if (fixDateUTC) {
+      const sample = computed.find(
+        c =>
+          c.GPS &&
+          c.GPS.LATITUDE != null &&
+          c.GPS.LONGITUDE != null &&
+          c.GPS.LATITUDE != 'n/a' &&
+          c.GPS.LONGITUDE != 'n/a' &&
+          c.DATE != null
+      );
+      let offset = 0;
+      if (sample) {
+        try {
+          const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
+          if (tz) {
+            let d = moment(sample.DATE);
+            offset = (d.utcOffset() - d.tz(tz).utcOffset()) * 60 * 1000;
+          }
+        } catch (error) {
+          console.warn(error);
         }
-      } catch (error) {
-        console.warn(error);
       }
     }
     computed.forEach((c, i, arr) => {

@@ -163,13 +163,13 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
           console.warn(error);
         }
       }
+      computed.forEach(c => (c.DATE += offset));
     }
     computed.forEach((c, i, arr) => {
       if (i > 0 && i < arr.length - 1 && c.DATE === arr[i + 1].DATE) {
         const diff = c.DATE - arr[i - 1].DATE;
         c.DATE = c.DATE - diff / 2;
       }
-      if (fixDateUTC) c.DATE += offset;
     });
     return computed;
   };

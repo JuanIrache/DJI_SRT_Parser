@@ -141,6 +141,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   // Fix duplicated dates
   const fixDates = function (arr) {
     let computed = JSON.parse(JSON.stringify(arr));
+    let offset = 0;
     if (fixDateUTC) {
       const sample = computed.find(
         c =>
@@ -151,7 +152,6 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
           c.GPS.LONGITUDE != 'n/a' &&
           c.DATE != null
       );
-      let offset = 0;
       if (sample) {
         try {
           const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);

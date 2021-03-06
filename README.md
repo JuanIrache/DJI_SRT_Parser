@@ -146,5 +146,6 @@ Please make your changes to the **dev** branch, so that automated tests can be r
 
 ## To-Do
 
+- Add sample and tests for DJI FPV
 - Fix disabled tests. Too strict, they fail with good changes
 - Add tests for export formats

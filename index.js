@@ -3,6 +3,8 @@ const moment = require('moment-timezone');
 
 const toMGJSON = require('./modules/toMGJSON');
 
+const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
+
 function DJI_SRT_Parser() {
   this.fileName = '';
   this.metadata = {};
@@ -65,7 +67,9 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
       while ((match = valueRegEx.exec(line))) {
         converted[converted.length - 1][match[1]] = maybeParseNumbers(match[2]);
       }
-      if ((match = accurateDateRegex.exec(line))) {
+      if ((match = isoDateRegex.exec(line))) {
+        converted[converted.length - 1].DATE = line;
+      } else if ((match = accurateDateRegex.exec(line))) {
         converted[converted.length - 1].DATE =
           match[1] + ':' + match[2] + '.' + match[3];
       } else if ((match = accurateDateRegex2.exec(line))) {
@@ -420,7 +424,6 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       } else if (key.toUpperCase() === 'TIMECODE') {
         interpretedI = datum;
       } else if (key.toUpperCase() === 'DATE') {
-        const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
         let date = datum;
         // Fix date offset if not Zulu
         if (fixDateUTC == null) fixDateUTC = !/.+Z$/.test(datum);

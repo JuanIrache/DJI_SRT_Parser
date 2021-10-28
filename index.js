@@ -577,7 +577,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   smoothing = smoothing >= 0 ? smoothing : 0;
 
   // Only accept parameters with GPS to prevent fatal errors
-  filteredGPSArr = newArr.filter(arr => arr.GPS);
+  let filteredGPSArr = newArr.filter(arr => arr.GPS);
 
   if (filteredGPSArr.length) {
     if (smoothing !== 0) {
@@ -832,7 +832,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
           source: 'dji-srt-parser',
           timestamp: [],
           name: cleanFileName(fileName),
-          ...this.customProperties
+          ...context.customProperties
         },
         geometry: {
           type: 'LineString',

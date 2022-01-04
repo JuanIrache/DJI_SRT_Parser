@@ -3,7 +3,8 @@ const moment = require('moment-timezone');
 
 const toMGJSON = require('./modules/toMGJSON');
 
-const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
+const isoDateRegex =
+  /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
 
 function DJI_SRT_Parser() {
   this.fileName = '';
@@ -27,8 +28,10 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
   const arrayRegEx = /\b([A-Z_a-z]+)\(([-\+\w.,/]+)\)/g;
   const valueRegEx = /\b([A-Z_a-z]+)\s?:[\s\[a-z_A-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
   const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2,}/;
-  const accurateDateRegex = /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
-  const accurateDateRegex2 = /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2})[,.](\w{3})/g;
+  const accurateDateRegex =
+    /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
+  const accurateDateRegex2 =
+    /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2})[,.](\w{3})/g;
   //Split difficult Phantom4Pro format
   srt = srt
     .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))

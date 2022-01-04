@@ -472,7 +472,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         //translate keys form various formats
         SHUTTER: ['TV', 'SS'],
         FNUM: ['IR', 'F'],
-        ALTITUDE: ['H']
+        ALTITUDE: ['H', 'ABS_ALT', 'REL_ALT']
       };
       for (let key in references) {
         if (pckt[key] == undefined) {

@@ -448,6 +448,10 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       } else if (key.toUpperCase() === 'FNUM' && Number(datum) > 50) {
         //convert f numbers represented like 280
         interpretedI = Number(datum) / 100;
+      } else if (Array.isArray(datum)) {
+        interpretedI = datum.map(d =>
+          isNum(d) ? Number(d) : Number(d.replace(/[a-zA-Z]/g, ''))
+        );
       } else {
         interpretedI = isNum(datum)
           ? Number(datum)

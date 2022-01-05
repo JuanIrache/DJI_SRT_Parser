@@ -1,7 +1,8 @@
 # DJI_SRT_Parser
 
 Parses and interprets some data from DJI's Drones SRT metadata files.
-Mostly tested with Mavic Pro SRT files. You can send me yours if you want it implemented.
+Tested with Mavic Pro, Mavic 2 Zoom/Pro, Mavic 3, Mavic Mini, Mini 2, Mini SE, Air 2, Air 2s, DJI FPV, Phantom Pro (some versions), Inspire (some versions)...
+You can send me your samples if you want them implemented.
 Please let me know if you create something with this :).
 
 - Used in [Telemetry Overlay](https://goprotelemetryextractor.com/telemetry-overlay-gps-video-sensors)

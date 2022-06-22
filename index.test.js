@@ -181,7 +181,7 @@ let data_p4_rtk2 = preload(`./samples/p4_rtk.SRT`);
 let p4_rtk2 = DJISRTParser(data_p4_rtk2, 'p4_rtk.SRT');
 
 test('Single file to CSV. Some "V_S" have negative values', () => {
-  expect(p4_rtk2.toCSV().length).toBe(16419);
+  expect(p4_rtk2.toCSV().length).toBe(16763);
 });
 
 test('Single file to CSV, rawMetadata enabled', () => {

@@ -406,10 +406,13 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         };
         interpretedI = {
           LATITUDE: isNum(datum[idx.lat]) ? Number(datum[idx.lat]) : 'n/a',
-          LONGITUDE: isNum(datum[idx.lon]) ? Number(datum[idx.lon]) : 'n/a',
-          SATELLITES: !m300format && isNum(datum[2]) ? Number(datum[2]) : 'n/a',
-          PRECISION: m300format && isNum(datum[2]) ? Number(datum[2]) : 'n/a'
+          LONGITUDE: isNum(datum[idx.lon]) ? Number(datum[idx.lon]) : 'n/a'
         };
+        if (m300format && isNum(datum[2].replace(/[a-z]/gi, ''))) {
+          interpretedI.PRECISION = Number(datum[2].replace(/[a-z]/gi, ''));
+        } else if (isNum(datum[2])) {
+          interpretedI.SATELLITES = Number(datum[2]);
+        }
       } else if (key.toUpperCase() === 'F_PRY') {
         interpretedI = {
           1: isNum(datum[1]) ? Number(datum[1]) : 'n/a', // For now, I don't know what the data means

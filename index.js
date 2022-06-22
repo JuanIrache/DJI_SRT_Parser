@@ -399,10 +399,16 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         datum *= 180 / Math.PI;
       }
       if (key.toUpperCase() === 'GPS') {
+        const m300format = /^\d+\.\d+M$/.test(datum[2]);
+        const idx = {
+          lat: m300format ? 0 : 1,
+          lon: m300format ? 1 : 0
+        };
         interpretedI = {
-          LATITUDE: isNum(datum[1]) ? Number(datum[1]) : 'n/a',
-          LONGITUDE: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
-          SATELLITES: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
+          LATITUDE: isNum(datum[idx.lat]) ? Number(datum[idx.lat]) : 'n/a',
+          LONGITUDE: isNum(datum[idx.lon]) ? Number(datum[idx.lon]) : 'n/a',
+          SATELLITES: !m300format && isNum(datum[2]) ? Number(datum[2]) : 'n/a',
+          PRECISION: m300format && isNum(datum[2]) ? Number(datum[2]) : 'n/a'
         };
       } else if (key.toUpperCase() === 'F_PRY') {
         interpretedI = {
@@ -504,12 +510,14 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       let latitude = pckt['LATITUDE']; //Mavic 2 style
       let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
       let satellites = pckt['SATELLITES'];
+      let precision = pckt['PRECISION'];
       // If one parameter exists, we fill the other later
       if (latitude != undefined || longitude != undefined) {
         pckt.GPS = {
           LONGITUDE: longitude,
           LATITUDE: latitude,
-          SATELLITES: satellites
+          SATELLITES: satellites,
+          PRECISION: precision
         };
       }
       return pckt;
@@ -602,20 +610,33 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   for (let i = 1; i < newArr.length; i++) {
     //loop back and forth to fill missing gps data with neighbours
     if (newArr[i].GPS) {
-      if (!isNum(newArr[i].GPS.LATITUDE))
-        newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
-      if (!isNum(newArr[i].GPS.LONGITUDE))
-        newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.SATELLITES && !isNum(newArr[i].GPS.SATELLITES))
-        newArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
+      try {
+        if (!isNum(newArr[i].GPS.LATITUDE))
+          newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
+        if (!isNum(newArr[i].GPS.LONGITUDE))
+          newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
+        if (newArr[i].GPS.SATELLITES && !isNum(newArr[i].GPS.SATELLITES))
+          newArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
+        if (newArr[i].GPS.PRECISION && !isNum(newArr[i].GPS.PRECISION))
+          newArr[i].GPS.PRECISION = newArr[i - 1].GPS.PRECISION;
+      } catch (_) {}
     }
   }
   for (let i = newArr.length - 2; i >= 0; i--) {
     if (newArr[i].GPS) {
-      if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i + 1].GPS.LATITUDE;
-      if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i + 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.SATELLITES != null && !isNum(newArr[i].GPS.SATELLITES))
-        newArr[i + 1].GPS.SATELLITES;
+      try {
+        if (!isNum(newArr[i].GPS.LATITUDE))
+          newArr[i].GPS.LATITUDE = newArr[i + 1].GPS.LATITUDE;
+        if (!isNum(newArr[i].GPS.LONGITUDE))
+          newArr[i].GPS.LONGITUDE = newArr[i + 1].GPS.LONGITUDE;
+        if (
+          newArr[i].GPS.SATELLITES != null &&
+          !isNum(newArr[i].GPS.SATELLITES)
+        )
+          newArr[i].GPS.SATELLITES = newArr[i + 1].GPS.SATELLITES;
+        if (newArr[i].GPS.PRECISION != null && !isNum(newArr[i].GPS.PRECISION))
+          newArr[i].GPS.PRECISION = newArr[i + 1].GPS.PRECISION;
+      } catch (_) {}
     }
   }
   let smoothing = smooth != undefined ? smooth : 4;

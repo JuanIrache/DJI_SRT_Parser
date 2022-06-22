@@ -610,24 +610,33 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   for (let i = 1; i < newArr.length; i++) {
     //loop back and forth to fill missing gps data with neighbours
     if (newArr[i].GPS) {
-      if (!isNum(newArr[i].GPS.LATITUDE))
-        newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
-      if (!isNum(newArr[i].GPS.LONGITUDE))
-        newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.SATELLITES && !isNum(newArr[i].GPS.SATELLITES))
-        newArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
-      if (newArr[i].GPS.PRECISION && !isNum(newArr[i].GPS.PRECISION))
-        newArr[i].GPS.PRECISION = newArr[i - 1].GPS.PRECISION;
+      try {
+        if (!isNum(newArr[i].GPS.LATITUDE))
+          newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
+        if (!isNum(newArr[i].GPS.LONGITUDE))
+          newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
+        if (newArr[i].GPS.SATELLITES && !isNum(newArr[i].GPS.SATELLITES))
+          newArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
+        if (newArr[i].GPS.PRECISION && !isNum(newArr[i].GPS.PRECISION))
+          newArr[i].GPS.PRECISION = newArr[i - 1].GPS.PRECISION;
+      } catch (_) {}
     }
   }
   for (let i = newArr.length - 2; i >= 0; i--) {
     if (newArr[i].GPS) {
-      if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i + 1].GPS.LATITUDE;
-      if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i + 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.SATELLITES != null && !isNum(newArr[i].GPS.SATELLITES))
-        newArr[i + 1].GPS.SATELLITES;
-      if (newArr[i].GPS.PRECISION != null && !isNum(newArr[i].GPS.PRECISION))
-        newArr[i + 1].GPS.PRECISION;
+      try {
+        if (!isNum(newArr[i].GPS.LATITUDE))
+          newArr[i].GPS.LATITUDE = newArr[i + 1].GPS.LATITUDE;
+        if (!isNum(newArr[i].GPS.LONGITUDE))
+          newArr[i].GPS.LONGITUDE = newArr[i + 1].GPS.LONGITUDE;
+        if (
+          newArr[i].GPS.SATELLITES != null &&
+          !isNum(newArr[i].GPS.SATELLITES)
+        )
+          newArr[i].GPS.SATELLITES = newArr[i + 1].GPS.SATELLITES;
+        if (newArr[i].GPS.PRECISION != null && !isNum(newArr[i].GPS.PRECISION))
+          newArr[i].GPS.PRECISION = newArr[i + 1].GPS.PRECISION;
+      } catch (_) {}
     }
   }
   let smoothing = smooth != undefined ? smooth : 4;

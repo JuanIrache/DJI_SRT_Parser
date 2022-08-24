@@ -715,7 +715,7 @@ DJI_SRT_Parser.prototype.createCSV = function (raw) {
   const flatObject = input => {
     function flat(res, key, val, pre = '') {
       const prefix = [pre, key].filter(v => v).join('.');
-      return typeof val === 'object'
+      return val != null && typeof val === 'object'
         ? Object.keys(val).reduce(
             (prev, curr) => flat(prev, curr, val[curr], prefix),
             res

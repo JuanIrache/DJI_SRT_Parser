@@ -1,11 +1,13 @@
 # DJI_SRT_Parser
 
 Parses and interprets some data from DJI's Drones SRT metadata files.
-Mostly tested with Mavic Pro SRT files. You can send me yours if you want it implemented.
+Tested with Mavic Pro, Mavic 2 Zoom/Pro, Mavic 3, Mavic Mini, Mini 2, Mini SE, Air 2, Air 2s, DJI FPV, Phantom Pro (some versions), Inspire (some versions)...
+You can send me your samples if you want them implemented.
 Please let me know if you create something with this :).
 
-- Used for creating this SRT log viewer in https://djitelemetryoverlay.com
-- Example video using the data in After Effects: https://youtu.be/zAkUTOLmdmQ
+- Used in [Telemetry Overlay](https://goprotelemetryextractor.com/telemetry-overlay-gps-video-sensors)
+- Used for creating the [SRT Viewer](https://djitelemetryoverlay.com/srt-viewer/)
+- [Example video](https://youtu.be/zAkUTOLmdmQ) with this code and After Effects
 
 ## Installation
 
@@ -30,11 +32,14 @@ let dataString = readTextFile(fileName);
 // You can create multiple instances, one for reading each SRT file. Specify data as a string and filename for future reference.
 let DJIData = DJISRTParser(dataString, fileName);
 
-// You can also especify data and fileName as an array of strings, so you can import multiples files at once. 
+// You can also especify data and fileName as an array of strings, so you can import multiples files at once.
 // When exported to GeoJSON, each one will be exported inside the same GeometryCollection as a separate Feature (LineString).
 let fileName2 = 'filePath2.SRT';
 let dataString2 = readTextFile(fileName2);
-let multi_DJIData = DJISRTParser([dataString, dataString2], [fileName, filename2]);
+let multi_DJIData = DJISRTParser(
+  [dataString, dataString2],
+  [fileName, filename2]
+);
 
 // toGeoJSON(raw, waypoints, elevationOffset) exports the current interpretation of data to the geoJSON format. The optional value raw exports the raw data instead. The second parameter, waypoints, specifies whether to include a single feature with all the data for each waypoint. The third parameter, elevationOffset, offset the elevation values by the specified meters. You can then use tokml or togpx modules to convert to those formats
 let geoJSON = DJIData.toGeoJSON();
@@ -42,7 +47,7 @@ let geoJSON = DJIData.toGeoJSON();
 // rawMetadata() returns an array of objects with labels and the unmodified SRT data in the form of strings
 console.log(DJIData.rawMetadata());
 
-// If mutiple files are imported in the same instance, rawMetadata() will return all the files in the format: 
+// If mutiple files are imported in the same instance, rawMetadata() will return all the files in the format:
 // { "fileName" : ...rawMetadata, "fileName2" : ...rawMetadata2 }
 // Alternativally, you can especify the fileName and get only the rawMetadata of that singular file
 console.log(multi_DJIData.rawMetadata()); // return all the files
@@ -54,7 +59,7 @@ console.log(multi_DJIData.rawMetadata(filename2)); // return only that file
 console.log(DJIData.metadata());
 
 // If mutiple files are imported, metadata() will return all the files in the format:
-// { "fileName" : { "packets" : ...data, "stats" : ...data }, ...fileName2 }. 
+// { "fileName" : { "packets" : ...data, "stats" : ...data }, ...fileName2 }.
 // Alternatively, you can especify the fileName and get only the metadata of that singular file
 console.log(multi_DJIData.metadata(filename2)); // return only that file
 console.log(multi_DJIData.metadata()); // return all the files
@@ -73,7 +78,7 @@ console.log(DJIData.setMillisecondsPerSamples(0));
 
 // setProperties() add custom properties to the features. These are incorporated into the "properties" of each feature in the GeoJSON, and as new columns if it's exported to CSV.
 // Use false to clean the properties already added, otherwise use an JSON Object to add data.
-let obj = { "customProperty": "value", "customProperty2": 123 };
+let obj = { customProperty: 'value', customProperty2: 123 };
 console.log(DJIData.setProperties(obj));
 
 //getFileName() returns the filename, useful if you loaded multiple files in multiple instances
@@ -87,7 +92,11 @@ let csvData = DJIData.toCSV();
 let mgjsonData = DJIData.toMGJSON();
 
 //Now you can also load a GeoJSON (or JSON) file directly into the rawMetadata field. This can be useful if you want to import data from other sources into the system,
-let DJIData = DJISRTParser(JSONDataString, JSONfileName, /* isPreparedData = */ true);
+let DJIData = DJISRTParser(
+  JSONDataString,
+  JSONfileName,
+  /* isPreparedData = */ true
+);
 //These data must follow the same structure as rawMetadata() usually has:
 // {
 //   "TIMECODE":"00:00:01,000",
@@ -138,5 +147,6 @@ Please make your changes to the **dev** branch, so that automated tests can be r
 
 ## To-Do
 
-- Handle home altitude?
+- Add sample and tests for DJI FPV
+- Fix disabled tests. Too strict, they fail with good changes
 - Add tests for export formats

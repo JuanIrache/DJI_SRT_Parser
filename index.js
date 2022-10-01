@@ -1,4 +1,10 @@
+const tzlookup = require('tz-lookup');
+const moment = require('moment-timezone');
+
 const toMGJSON = require('./modules/toMGJSON');
+
+const isoDateRegex =
+  /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
 
 function DJI_SRT_Parser() {
   this.fileName = '';
@@ -22,14 +28,17 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
   const arrayRegEx = /\b([A-Z_a-z]+)\(([-\+\w.,/]+)\)/g;
   const valueRegEx = /\b([A-Z_a-z]+)\s?:[\s\[a-z_A-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
   const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2,}/;
-  const accurateDateRegex = /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
+  const accurateDateRegex =
+    /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
+  const accurateDateRegex2 =
+    /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2})[,.](\w{3})/g;
   //Split difficult Phantom4Pro format
   srt = srt
     .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))
     .replace(/\(([^\)]+)\)/g, match =>
       match.replace(/,/g, ':separator:').replace(/\s/g, '')
     )
-    .replace(/,/g, '')
+    .replace(/, /g, ' ')
     .replace(/Â|°|(B0)/g, '')
     .replace(/\:separator\:/g, ',');
   //Split others
@@ -61,9 +70,13 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
       while ((match = valueRegEx.exec(line))) {
         converted[converted.length - 1][match[1]] = maybeParseNumbers(match[2]);
       }
-      if ((match = accurateDateRegex.exec(line))) {
+      if ((match = isoDateRegex.exec(line))) {
+        converted[converted.length - 1].DATE = line;
+      } else if ((match = accurateDateRegex.exec(line))) {
         converted[converted.length - 1].DATE =
           match[1] + ':' + match[2] + '.' + match[3];
+      } else if ((match = accurateDateRegex2.exec(line))) {
+        converted[converted.length - 1].DATE = match[1] + '.' + match[2];
       } else if ((match = dateRegEx.exec(line))) {
         converted[converted.length - 1].DATE = match[0].replace(
           /(:\d{2})(\d+)\d*$/,
@@ -132,10 +145,36 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   arr = arr.filter(value => Object.keys(value).length > 1);
   // Do not process empty files
   if (!arr.length) return null;
-  
+
+  let fixDateUTC;
+
   // Fix duplicated dates
   const fixDates = function (arr) {
     let computed = JSON.parse(JSON.stringify(arr));
+    let offset = 0;
+    if (fixDateUTC) {
+      const sample = computed.find(
+        c =>
+          c.GPS &&
+          c.GPS.LATITUDE != null &&
+          c.GPS.LONGITUDE != null &&
+          c.GPS.LATITUDE != 'n/a' &&
+          c.GPS.LONGITUDE != 'n/a' &&
+          c.DATE != null
+      );
+      if (sample) {
+        try {
+          const tz = tzlookup(sample.GPS.LATITUDE, sample.GPS.LONGITUDE);
+          if (tz) {
+            let d = moment(sample.DATE);
+            offset = (d.utcOffset() - d.tz(tz).utcOffset()) * 60 * 1000;
+          }
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+      computed.forEach(c => (c.DATE += offset));
+    }
     computed.forEach((c, i, arr) => {
       if (i > 0 && i < arr.length - 1 && c.DATE === arr[i + 1].DATE) {
         const diff = c.DATE - arr[i - 1].DATE;
@@ -363,11 +402,20 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         datum *= 180 / Math.PI;
       }
       if (key.toUpperCase() === 'GPS') {
-        interpretedI = {
-          LATITUDE: isNum(datum[1]) ? Number(datum[1]) : 'n/a',
-          LONGITUDE: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
-          SATELLITES: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
+        const m300format = /^\d+\.\d+M$/.test(datum[2]);
+        const idx = {
+          lat: m300format ? 0 : 1,
+          lon: m300format ? 1 : 0
         };
+        interpretedI = {
+          LATITUDE: isNum(datum[idx.lat]) ? Number(datum[idx.lat]) : 'n/a',
+          LONGITUDE: isNum(datum[idx.lon]) ? Number(datum[idx.lon]) : 'n/a'
+        };
+        if (m300format && isNum(datum[2].replace(/[a-z]/gi, ''))) {
+          interpretedI.PRECISION = Number(datum[2].replace(/[a-z]/gi, ''));
+        } else if (isNum(datum[2])) {
+          interpretedI.SATELLITES = Number(datum[2]);
+        }
       } else if (key.toUpperCase() === 'F_PRY') {
         interpretedI = {
           1: isNum(datum[1]) ? Number(datum[1]) : 'n/a', // For now, I don't know what the data means
@@ -385,18 +433,23 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
           LATITUDE: Number(datum[1]),
           LONGITUDE: Number(datum[0])
         };
+        if (datum.length > 2) {
+          interpretedI.ALTITUDE = +datum[2].replace(/m$/, '');
+        }
       } else if (key.toUpperCase() === 'TIMECODE') {
         interpretedI = datum;
       } else if (key.toUpperCase() === 'DATE') {
-        const isoDateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z/;
         let date = datum;
+        // Fix date offset if not Zulu
+        if (fixDateUTC == null) fixDateUTC = !/.+Z$/.test(datum);
         if (!isoDateRegex.exec(datum))
           date = datum
             .replace(/\./g, '-')
             .replace(' ', 'T')
             .replace(/-([0-9](\b|[a-zA-Z]))/g, '-0$1')
             .replace(/:(\w{3})-(\w{3})$/g, '.$1')
-            .replace(/-(\d+)Z?$/, '.$1');
+            .replace(/-(\d+Z?)$/, '.$1');
+
         interpretedI = new Date(date).getTime();
       } else if (key.toUpperCase() === 'EV') {
         interpretedI = eval(datum);
@@ -407,6 +460,10 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       } else if (key.toUpperCase() === 'FNUM' && Number(datum) > 50) {
         //convert f numbers represented like 280
         interpretedI = Number(datum) / 100;
+      } else if (Array.isArray(datum)) {
+        interpretedI = datum.map(d =>
+          isNum(d) ? Number(d) : Number(d.replace(/[a-zA-Z]/g, ''))
+        );
       } else {
         interpretedI = isNum(datum)
           ? Number(datum)
@@ -434,7 +491,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         //translate keys form various formats
         SHUTTER: ['TV', 'SS'],
         FNUM: ['IR', 'F'],
-        BAROMETER: ['BAROMETER', 'H']
+        ALTITUDE: ['H', 'ABS_ALT', 'REL_ALT']
       };
       for (let key in references) {
         if (pckt[key] == undefined) {
@@ -459,12 +516,14 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       let latitude = pckt['LATITUDE']; //Mavic 2 style
       let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'];
       let satellites = pckt['SATELLITES'];
+      let precision = pckt['PRECISION'];
       // If one parameter exists, we fill the other later
       if (latitude != undefined || longitude != undefined) {
         pckt.GPS = {
           LONGITUDE: longitude,
           LATITUDE: latitude,
-          SATELLITES: satellites
+          SATELLITES: satellites,
+          PRECISION: precision
         };
       }
       return pckt;
@@ -557,20 +616,33 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
   for (let i = 1; i < newArr.length; i++) {
     //loop back and forth to fill missing gps data with neighbours
     if (newArr[i].GPS) {
-      if (!isNum(newArr[i].GPS.LATITUDE))
-        newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
-      if (!isNum(newArr[i].GPS.LONGITUDE))
-        newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.SATELLITES && !isNum(newArr[i].GPS.SATELLITES))
-        newArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
+      try {
+        if (!isNum(newArr[i].GPS.LATITUDE))
+          newArr[i].GPS.LATITUDE = newArr[i - 1].GPS.LATITUDE;
+        if (!isNum(newArr[i].GPS.LONGITUDE))
+          newArr[i].GPS.LONGITUDE = newArr[i - 1].GPS.LONGITUDE;
+        if (newArr[i].GPS.SATELLITES && !isNum(newArr[i].GPS.SATELLITES))
+          newArr[i].GPS.SATELLITES = newArr[i - 1].GPS.SATELLITES;
+        if (newArr[i].GPS.PRECISION && !isNum(newArr[i].GPS.PRECISION))
+          newArr[i].GPS.PRECISION = newArr[i - 1].GPS.PRECISION;
+      } catch (_) {}
     }
   }
   for (let i = newArr.length - 2; i >= 0; i--) {
     if (newArr[i].GPS) {
-      if (!isNum(newArr[i].GPS.LATITUDE)) newArr[i + 1].GPS.LATITUDE;
-      if (!isNum(newArr[i].GPS.LONGITUDE)) newArr[i + 1].GPS.LONGITUDE;
-      if (newArr[i].GPS.SATELLITES != null && !isNum(newArr[i].GPS.SATELLITES))
-        newArr[i + 1].GPS.SATELLITES;
+      try {
+        if (!isNum(newArr[i].GPS.LATITUDE))
+          newArr[i].GPS.LATITUDE = newArr[i + 1].GPS.LATITUDE;
+        if (!isNum(newArr[i].GPS.LONGITUDE))
+          newArr[i].GPS.LONGITUDE = newArr[i + 1].GPS.LONGITUDE;
+        if (
+          newArr[i].GPS.SATELLITES != null &&
+          !isNum(newArr[i].GPS.SATELLITES)
+        )
+          newArr[i].GPS.SATELLITES = newArr[i + 1].GPS.SATELLITES;
+        if (newArr[i].GPS.PRECISION != null && !isNum(newArr[i].GPS.PRECISION))
+          newArr[i].GPS.PRECISION = newArr[i + 1].GPS.PRECISION;
+      } catch (_) {}
     }
   }
   let smoothing = smooth != undefined ? smooth : 4;
@@ -621,8 +693,6 @@ function getElevationKey(src) {
     return 'BAROMETER';
   } else if (src.HB != undefined) {
     return 'HB';
-  } else if (src.HS != undefined) {
-    return 'HS';
   }
   return 'ALTITUDE';
 }
@@ -635,8 +705,6 @@ function getElevation(src) {
     return src.BAROMETER;
   } else if (src.HB != undefined) {
     return src.HB;
-  } else if (src.HS != undefined) {
-    return src.HS;
   }
   return null;
 }
@@ -650,7 +718,7 @@ DJI_SRT_Parser.prototype.createCSV = function (raw) {
   const flatObject = input => {
     function flat(res, key, val, pre = '') {
       const prefix = [pre, key].filter(v => v).join('.');
-      return typeof val === 'object'
+      return val != null && typeof val === 'object'
         ? Object.keys(val).reduce(
             (prev, curr) => flat(prev, curr, val[curr], prefix),
             res
@@ -853,8 +921,7 @@ DJI_SRT_Parser.prototype.createGeoJSON = function (
             'SPEED_THREED',
             'SPEED_TWOD',
             'SPEED_VERTICAL',
-            'HB',
-            'HS'
+            'HB'
           ].includes(prop)
         ) {
           result.properties[prop] = props[prop];

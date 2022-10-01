@@ -1,11 +1,11 @@
 'use_strict';
 
 function preload(file, cb) {
-  let loadFileBrowser = function(file) {
-    let readTextFile = function(file, f) {
+  let loadFileBrowser = function (file) {
+    let readTextFile = function (file, f) {
       let rawFile = new XMLHttpRequest();
       rawFile.open('GET', file, true);
-      rawFile.onreadystatechange = function() {
+      rawFile.onreadystatechange = function () {
         if (rawFile.readyState === 4) {
           if (rawFile.status === 200 || rawFile.status == 0) {
             let allText = rawFile.responseText;
@@ -17,10 +17,10 @@ function preload(file, cb) {
     };
     readTextFile(file, context.flow);
   };
-  let loadFileNode = function(file) {
+  let loadFileNode = function (file) {
     let http = require('http');
     var fs = require('fs');
-    fs.readFile(file, function(err, data) {
+    fs.readFile(file, function (err, data) {
       if (err) {
         throw err;
       }

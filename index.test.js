@@ -345,8 +345,8 @@ test('Loading file with incomplete/broken GPS data and filling it', () => {
   ).toEqual([-57.823383, -34.869941]);
 });
 
-let mixedData = preload(`./samples/mix_p4rtk_mavic2pro.SRT`);
-let mixed = DJISRTParser(mixedData, 'mix_p4rtk_mavic2pro.SRT');
+let mixedData = preload(`./samples/mix_p4rtk_mavic2pro.srt`);
+let mixed = DJISRTParser(mixedData, 'mix_p4rtk_mavic2pro.srt');
 test('Mixed data', () => {
   mixed.setSmoothing(0);
   expect(mixed.toGeoJSON(false, true)).toBeDefined();

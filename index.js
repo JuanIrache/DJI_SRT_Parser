@@ -491,15 +491,17 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         //translate keys form various formats
         SHUTTER: ['TV', 'SS'],
         FNUM: ['IR', 'F'],
-        ALTITUDE: ['H', 'ABS_ALT', 'REL_ALT']
+        ALTITUDE: ['H', 'ABS_ALT'],
+        BAROMETER: ['REL_ALT']
       };
       for (let key in references) {
         if (pckt[key] == undefined) {
-          references[key].forEach(match => {
+          for (const match of references[key]) {
             if (pckt[match] != undefined) {
               replaceKey(pckt, match, key);
+              break;
             }
-          });
+          }
         }
       }
 

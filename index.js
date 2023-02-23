@@ -334,9 +334,9 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       };
       let result = res;
       for (let elt in result) {
-        let select = arr.map(pck => { 
+        let select = arr.map(pck => {
           //remove undefined values in mixed srt files
-          if (pck) return pck[elt]
+          if (pck) return pck[elt];
         });
         if (elt === 'HOME') {
           //fill fields that do not use standard stats
@@ -491,15 +491,17 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         //translate keys form various formats
         SHUTTER: ['TV', 'SS'],
         FNUM: ['IR', 'F'],
-        ALTITUDE: ['H', 'ABS_ALT', 'REL_ALT']
+        ALTITUDE: ['H', 'ABS_ALT'],
+        BAROMETER: ['REL_ALT']
       };
       for (let key in references) {
         if (pckt[key] == undefined) {
-          references[key].forEach(match => {
+          for (const match of references[key]) {
             if (pckt[match] != undefined) {
               replaceKey(pckt, match, key);
+              break;
             }
-          });
+          }
         }
       }
 
@@ -663,7 +665,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
     console.error('Error intrerpreting metadata');
     return null;
   }
-  
+
   let stats = computeStats(newArr);
 
   return {

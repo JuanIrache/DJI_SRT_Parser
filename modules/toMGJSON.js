@@ -18,11 +18,11 @@ function createDataOutlineChildText(matchName, displayName, value) {
       paddedStringProperties: {
         maxLen: value.length,
         maxDigitsInStrLength: value.length.toString().length,
-        eventMarkerB: false,
-      },
+        eventMarkerB: false
+      }
     },
     matchName,
-    value,
+    value
   };
 }
 
@@ -136,16 +136,17 @@ function convertSamples(data, elevationOffset) {
         );
         //And find the type
 
-        const setMaxMinPadStr = function(val, outline) {
+        const setMaxMinPadStr = function (val, outline) {
           //Set found max lengths
           outline.dataType.paddedStringProperties.maxLen = Math.max(
             val.toString().length,
             outline.dataType.paddedStringProperties.maxLen
           );
-          outline.dataType.paddedStringProperties.maxDigitsInStrLength = Math.max(
-            val.length.toString().length,
-            outline.dataType.paddedStringProperties.maxDigitsInStrLength
-          );
+          outline.dataType.paddedStringProperties.maxDigitsInStrLength =
+            Math.max(
+              val.length.toString().length,
+              outline.dataType.paddedStringProperties.maxDigitsInStrLength
+            );
         };
 
         //Loop all the samples
@@ -153,7 +154,7 @@ function convertSamples(data, elevationOffset) {
           //Extract wanted data
           const value = extract(s);
           //Update mins and maxes
-          const setMaxMinPadNum = function(val, pattern, range) {
+          const setMaxMinPadNum = function (val, pattern, range) {
             range.occuring.min = Math.min(val, range.occuring.min);
             range.occuring.max = Math.max(val, range.occuring.max);
             // Copy occuring min and max to legal ones. This usually avoids a bug in AE where it mixes up float and int values and limits ranges incorrectly
@@ -258,7 +259,7 @@ function convertSamples(data, elevationOffset) {
       units: ['deg', 'deg', 'm'],
       sampleSetID: `streamGPS`,
       type: 'numberStringArray',
-      extract: function(s) {
+      extract: function (s) {
         return [s.GPS.LATITUDE, s.GPS.LONGITUDE, chooseAlt(s, elevationOffset)];
       }
     });
@@ -268,7 +269,7 @@ function convertSamples(data, elevationOffset) {
       units: ['km/h', 'km/h', 'km/h'],
       sampleSetID: `streamSPEED`,
       type: 'numberStringArray',
-      extract: function(s) {
+      extract: function (s) {
         return [s.SPEED.TWOD, s.SPEED.THREED, s.SPEED.VERTICAL];
       }
     });
@@ -277,7 +278,7 @@ function convertSamples(data, elevationOffset) {
       units: ['m'],
       sampleSetID: `streamDISTANCE`,
       type: 'numberString',
-      extract: function(s) {
+      extract: function (s) {
         return s.DISTANCE;
       }
     });
@@ -286,7 +287,7 @@ function convertSamples(data, elevationOffset) {
       units: null,
       sampleSetID: `streamISO`,
       type: 'numberString',
-      extract: function(s) {
+      extract: function (s) {
         return s.ISO;
       }
     });
@@ -295,7 +296,7 @@ function convertSamples(data, elevationOffset) {
       units: null,
       sampleSetID: `streamSHUTTER`,
       type: 'numberString',
-      extract: function(s) {
+      extract: function (s) {
         return s.SHUTTER;
       }
     });
@@ -304,7 +305,7 @@ function convertSamples(data, elevationOffset) {
       units: null,
       sampleSetID: `streamFNUM`,
       type: 'numberString',
-      extract: function(s) {
+      extract: function (s) {
         return s.FNUM;
       }
     });
@@ -313,7 +314,7 @@ function convertSamples(data, elevationOffset) {
       units: null,
       sampleSetID: `streamDATE`,
       type: 'paddedString',
-      extract: function(s) {
+      extract: function (s) {
         return new Date(s.DATE).toISOString();
       }
     });
@@ -323,7 +324,7 @@ function convertSamples(data, elevationOffset) {
 }
 
 //Converts the processed data to After Effects format
-module.exports = function(data, name = '', elevationOffset) {
+module.exports = function (data, name = '', elevationOffset) {
   const converted = convertSamples(data, elevationOffset);
   //The format is very convoluted. This is the outer structure
   let result = {
@@ -342,7 +343,7 @@ module.exports = function(data, name = '', elevationOffset) {
       createDataOutlineChildText(
         'filename',
         'File name',
-        name.replace(/\.srt/ig, '') // Global, for concatenated filenames
+        name.replace(/\.srt/gi, '') // Global, for concatenated filenames
       ),
       ...converted.dataOutline
     ],

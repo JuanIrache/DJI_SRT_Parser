@@ -32,6 +32,11 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
     /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2}),(\w{3}),(\w{3})/g;
   const accurateDateRegex2 =
     /(\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2})[,.](\w{3})/g;
+  // Identify DJI FPV for altitude fix
+  const isDJIFPV =
+    /font size="28"/.test(srt) &&
+    /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{2}:\d{2}.\d{3}/.test(srt) &&
+    /\[altitude: \d.*\]/.test(srt);
   //Split difficult Phantom4Pro format
   srt = srt
     .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))
@@ -81,6 +86,11 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
         converted[converted.length - 1].DATE = match[0].replace(
           /(:\d{2})(\d+)\d*$/,
           '$1.$2'
+        );
+      } else if (isDJIFPV && /\[altitude: \d.*\]/.test(line)) {
+        // Correct altitude divided by 10 problem in DJI FPV drone
+        converted[converted.length - 1].altitude = String(
+          +converted[converted.length - 1].altitude * 10
         );
       }
     }
@@ -418,7 +428,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         }
       } else if (key.toUpperCase() === 'F_PRY') {
         interpretedI = {
-          1: isNum(datum[1]) ? Number(datum[1]) : 'n/a', // For now, I don't know what the data means
+          1: isNum(datum[1]) ? Number(datum[1]) : 'n/a',
           2: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
           3: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
         };

@@ -418,7 +418,7 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         }
       } else if (key.toUpperCase() === 'F_PRY') {
         interpretedI = {
-          1: isNum(datum[1]) ? Number(datum[1]) : 'n/a', // For now, I don't know what the data means
+          1: isNum(datum[1]) ? Number(datum[1]) : 'n/a',
           2: isNum(datum[0]) ? Number(datum[0]) : 'n/a',
           3: isNum(datum[2]) ? Number(datum[2]) : 'n/a'
         };

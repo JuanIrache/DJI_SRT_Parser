@@ -525,9 +525,14 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
         ).getTime();
       }
 
-      let latitude = pckt['LATITUDE'] || pckt['N']; //Mavic 2 style
-      let longitude = pckt['LONGITUDE'] || pckt['LONGTITUDE'] || pckt['W'];
-      let satellites = pckt['SATELLITES'] || pckt['NUM'];
+      const seemsAutel =
+        pckt['N'] != null && pckt['W'] != null && pckt['NUM'] != null;
+
+      //Mavic 2 style
+      let latitude = pckt['LATITUDE'] || (seemsAutel && pckt['N']);
+      let longitude =
+        pckt['LONGITUDE'] || pckt['LONGTITUDE'] || (seemsAutel && pckt['W']);
+      let satellites = pckt['SATELLITES'] || (seemsAutel && pckt['NUM']);
       let precision = pckt['PRECISION'];
       // If one parameter exists, we fill the other later
       if (latitude != undefined || longitude != undefined) {

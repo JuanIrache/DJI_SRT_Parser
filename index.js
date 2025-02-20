@@ -26,6 +26,7 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
   const timecodeRegEx = /(\d{2}:\d{2}:\d{2},\d{3})\s-->\s/;
   const packetRegEx = /^\d+$/;
   const arrayRegEx = /\b([A-Z_a-z]+)\(([-\+\w.,/]+)\)/g;
+  const autelGPSRegex = /\bGPS\((W|E):([\d.]+),(N|S):([\d.]+),(-?[\d.]+)m/g;
   const valueRegEx = /\b([A-Z_a-z]+)\s?:[\s\[a-z_A-Z\]]?([-\+\d./]+)\w{0,3}\b/g;
   const dateRegEx = /\d{4}[-.]\d{1,2}[-.]\d{1,2} \d{1,2}:\d{2}:\d{2,}/;
   const accurateDateRegex =
@@ -72,6 +73,14 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
           .split(',')
           .map(d => maybeParseNumbers(d));
       }
+      if ((match = autelGPSRegex.exec(line))) {
+        converted[converted.length - 1].LONGITUDE =
+          +match[4] * (match[3] === 'N' ? 1 : -1);
+        converted[converted.length - 1].LATITUDE =
+          +match[2] * (match[1] === 'E' ? 1 : -1);
+        converted[converted.length - 1].ALTITUDE = +match[5];
+      }
+
       while ((match = valueRegEx.exec(line))) {
         converted[converted.length - 1][match[1]] = maybeParseNumbers(match[2]);
       }
@@ -526,15 +535,33 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
       }
 
       const seemsAutel =
-        pckt['N'] != null && pckt['W'] != null && pckt['NUM'] != null;
+        (pckt['N'] != null || pckt['S'] != null) &&
+        (pckt['W'] != null || pckt['E'] != null) &&
+        pckt['NUM'] != null;
 
       //Mavic 2 style
-      let latitude = seemsAutel ? pckt['N'] : pckt['LATITUDE'];
+      let latitude = seemsAutel
+        ? pckt['N'] != null
+          ? pckt['N']
+          : -pckt['S']
+        : pckt['LATITUDE'];
       let longitude = seemsAutel
-        ? pckt['W']
+        ? pckt['E'] != null
+          ? pckt['E']
+          : -pckt['W']
         : pckt['LONGITUDE'] || pckt['LONGTITUDE'];
-      let satellites = seemsAutel ? pckt['NUM'] : pckt['SATELLITES'];
+      let satellites = pckt['SATELLITES'];
+      // NUM in autel seems to be F number sometimes
+      // let satellites = seemsAutel ? pckt['NUM'] : pckt['SATELLITES'];
+      if (seemsAutel) pckt['FNUM'] = pckt['NUM'];
       let precision = pckt['PRECISION'];
+      if (seemsAutel) {
+        delete pckt['N'];
+        delete pckt['S'];
+        delete pckt['W'];
+        delete pckt['E'];
+        delete pckt['NUM'];
+      }
       // If one parameter exists, we fill the other later
       if (latitude != undefined || longitude != undefined) {
         pckt.GPS = {

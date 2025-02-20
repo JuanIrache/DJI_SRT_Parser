@@ -434,6 +434,8 @@ DJI_SRT_Parser.prototype.interpretMetadata = function (arr, smooth) {
           interpretedI.PRECISION = Number(datum[2].replace(/[a-z]/gi, ''));
         } else if (isNum(datum[2])) {
           interpretedI.SATELLITES = Number(datum[2]);
+        } else if (/\dm$/.test(datum[2])) {
+          interpretedI.ALTITUDE = +datum[2].replace(/m$/, '');
         }
       } else if (key.toUpperCase() === 'F_PRY') {
         interpretedI = {

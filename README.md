@@ -1,7 +1,7 @@
 # DJI_SRT_Parser
 
 Parses and interprets some data from DJI's Drones SRT metadata files.
-Tested with Mavic Pro, Mavic 2 Zoom/Pro, Mavic 3, Mavic Mini, Mini 2, Mini SE, Air 2, Air 2s, DJI FPV, Phantom Pro (some versions), Inspire (some versions)...
+Tested with Mavic Pro, Mavic 2 Zoom/Pro, Mavic 3, Mavic Mini, Mini 2, Mini SE, Air 2, Air 2s, DJI FPV, Phantom Pro (some versions), Inspire (some versions)... and newer models. Some Autel drones use a similar subtitle format and may be supported to some extent.
 You can send me your samples if you want them implemented.
 Please let me know if you create something with this :).
 

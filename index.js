@@ -37,7 +37,7 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
   const isDJIFPV =
     /font size="28"/.test(srt) &&
     /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{2}:\d{2}.\d{3}/.test(srt) &&
-    /\[altitude: \d.*\]/.test(srt);
+    /\[altitude: -?\d.*\]/.test(srt);
   //Split difficult Phantom4Pro format
   srt = srt
     .replace(/.*-->.*/g, match => match.replace(/,/g, ':separator:'))
@@ -96,7 +96,7 @@ DJI_SRT_Parser.prototype.srtToObject = function (srt) {
           /(:\d{2})(\d+)\d*$/,
           '$1.$2'
         );
-      } else if (isDJIFPV && /\[altitude: \d.*\]/.test(line)) {
+      } else if (isDJIFPV && /\[altitude: -?\d.*\]/.test(line)) {
         // Correct altitude divided by 10 problem in DJI FPV drone
         converted[converted.length - 1].altitude = String(
           +converted[converted.length - 1].altitude * 10
